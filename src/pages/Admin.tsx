@@ -391,11 +391,11 @@ const Admin = () => {
 
                         {pastEvents.length > 0 && (
                           <Collapsible className="mt-6">
-                            <CollapsibleTrigger className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/50">
+                            <CollapsibleTrigger className="group flex w-full items-center gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/50">
                               <History className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm font-semibold text-foreground">Geçmiş Etkinlikler</span>
                               <span className="text-xs text-muted-foreground">({pastEvents.length})</span>
-                              <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                              <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
                             </CollapsibleTrigger>
                             <CollapsibleContent>
                               <div className="mt-3 rounded-xl border border-border/50 overflow-hidden">

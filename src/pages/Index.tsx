@@ -195,6 +195,7 @@ const Index = () => {
                     categoryName={event.categories?.name || ""}
                     attendeeCount={getAttendeeCount(event.rsvps || [])}
                     index={i}
+                    isPast
                   />
                 ))}
               </div>
