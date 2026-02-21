@@ -67,7 +67,7 @@ const HeroSection = () => {
           <Button
             size="lg"
             variant="outline"
-            className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 px-8 py-6 text-base backdrop-blur-sm"
+            className="border-primary-foreground/50 bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 px-8 py-6 text-base backdrop-blur-sm"
             onClick={() => {
               document.querySelector('#events-section')?.scrollIntoView({ behavior: 'smooth' });
             }}>
