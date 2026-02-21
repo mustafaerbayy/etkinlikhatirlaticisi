@@ -79,7 +79,7 @@ serve(async (req) => {
     for (const recipient of recipients) {
       try {
         await resend.emails.send({
-          from: "Refik Keşif <onboarding@resend.dev>",
+          from: "Refik Keşif <noreply@refikkesifinsa.online>",
           to: [recipient.email],
           subject,
           html: `
