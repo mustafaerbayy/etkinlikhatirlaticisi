@@ -91,6 +91,21 @@ const Admin = () => {
   };
 
   const handleSave = async () => {
+    // Validation
+    if (dialogType === "venue" && !formData.city_id) {
+      toast.error("Lütfen bir şehir seçin.");
+      return;
+    }
+    if (dialogType === "event") {
+      if (!formData.city_id || !formData.venue_id || !formData.category_id || !formData.title || !formData.date || !formData.time) {
+        toast.error("Lütfen tüm alanları doldurun.");
+        return;
+      }
+    }
+    if ((dialogType === "city" || dialogType === "category") && !formData.name?.trim()) {
+      toast.error("Lütfen bir ad girin.");
+      return;
+    }
     const doSave = async (table: "cities" | "categories" | "venues" | "events") => {
       if (editingItem) {
         return supabase.from(table).update(formData).eq("id", editingItem.id);
