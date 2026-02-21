@@ -7,6 +7,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import EventDetail from "./pages/EventDetail";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/giris" element={<Login />} />
             <Route path="/kayit" element={<Register />} />
+            <Route path="/sifremi-unuttum" element={<ForgotPassword />} />
+            <Route path="/sifre-sifirla" element={<ResetPassword />} />
             <Route path="/etkinlik/:id" element={<EventDetail />} />
             <Route path="/profil" element={<Profile />} />
             <Route path="/yonetim" element={<Admin />} />
