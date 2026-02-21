@@ -45,7 +45,12 @@ const Login = () => {
                 <Input id="email" type="text" placeholder="ornek@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Şifre</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Şifre</Label>
+                  <Link to="/sifremi-unuttum" className="text-xs text-primary hover:underline">
+                    Şifremi unuttum
+                  </Link>
+                </div>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
