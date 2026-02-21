@@ -43,12 +43,12 @@ const HeroSection = () => {
         </motion.h1>
 
         <motion.p
-          className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/85 md:text-xl leading-relaxed"
+          className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/85 leading-relaxed md:text-sm"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}>
+          transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}>Etkinlik hatırlatıcıları için aşağıdaki butona tıklayarak abone olabilirsiniz
 
-          Kültürel keşifler, sanatsal buluşmalar ve yaratıcı deneyimler için tek adres.
+
         </motion.p>
 
         <motion.div
