@@ -12,9 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, ChevronDown, History } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface City { id: string; name: string }
@@ -348,39 +349,90 @@ const Admin = () => {
             <TabsContent value="events">
               <Card className="border-border/50 bg-card/70 backdrop-blur-sm mt-4">
                 <CardContent className="p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-muted-foreground">{events.length} etkinlik</p>
-                    <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => openDialog("event")}><Plus className="h-4 w-4" /> Yeni Etkinlik</Button>
-                  </div>
-                  <div className="rounded-xl border border-border/50 overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted/30 hover:bg-muted/30">
-                          <TableHead className="font-semibold">Başlık</TableHead>
-                          <TableHead className="font-semibold">Tarih</TableHead>
-                          <TableHead className="font-semibold">Şehir</TableHead>
-                          <TableHead className="font-semibold">Kategori</TableHead>
-                          <TableHead className="text-right font-semibold">İşlem</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {events.map((e) => (
-                          <TableRow key={e.id} className="hover:bg-muted/20">
-                            <TableCell className="font-medium">{e.title}</TableCell>
-                            <TableCell className="text-muted-foreground">{e.date}</TableCell>
-                            <TableCell>{e.cities?.name && <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"><MapPin className="h-3 w-3" /> {e.cities.name}</span>}</TableCell>
-                            <TableCell>{e.categories?.name && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium"><Tag className="h-3 w-3" /> {e.categories.name}</span>}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openDialog("event", e)}><Pencil className="h-3.5 w-3.5" /></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete("events", e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  {(() => {
+                    const today = new Date().toISOString().split("T")[0];
+                    const upcomingEvents = events.filter(e => e.date >= today);
+                    const pastEvents = events.filter(e => e.date < today);
+                    return (
+                      <>
+                        <div className="flex justify-between items-center mb-4">
+                          <p className="text-sm text-muted-foreground">{upcomingEvents.length} yaklaşan etkinlik</p>
+                          <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => openDialog("event")}><Plus className="h-4 w-4" /> Yeni Etkinlik</Button>
+                        </div>
+                        <div className="rounded-xl border border-border/50 overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/30 hover:bg-muted/30">
+                                <TableHead className="font-semibold">Başlık</TableHead>
+                                <TableHead className="font-semibold">Tarih</TableHead>
+                                <TableHead className="font-semibold">Şehir</TableHead>
+                                <TableHead className="font-semibold">Kategori</TableHead>
+                                <TableHead className="text-right font-semibold">İşlem</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {upcomingEvents.map((e) => (
+                                <TableRow key={e.id} className="hover:bg-muted/20">
+                                  <TableCell className="font-medium">{e.title}</TableCell>
+                                  <TableCell className="text-muted-foreground">{e.date}</TableCell>
+                                  <TableCell>{e.cities?.name && <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"><MapPin className="h-3 w-3" /> {e.cities.name}</span>}</TableCell>
+                                  <TableCell>{e.categories?.name && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium"><Tag className="h-3 w-3" /> {e.categories.name}</span>}</TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex justify-end gap-1">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openDialog("event", e)}><Pencil className="h-3.5 w-3.5" /></Button>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete("events", e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {pastEvents.length > 0 && (
+                          <Collapsible className="mt-6">
+                            <CollapsibleTrigger className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/50">
+                              <History className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-semibold text-foreground">Geçmiş Etkinlikler</span>
+                              <span className="text-xs text-muted-foreground">({pastEvents.length})</span>
+                              <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <div className="mt-3 rounded-xl border border-border/50 overflow-hidden">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="bg-muted/30 hover:bg-muted/30">
+                                      <TableHead className="font-semibold">Başlık</TableHead>
+                                      <TableHead className="font-semibold">Tarih</TableHead>
+                                      <TableHead className="font-semibold">Şehir</TableHead>
+                                      <TableHead className="font-semibold">Kategori</TableHead>
+                                      <TableHead className="text-right font-semibold">İşlem</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {pastEvents.map((e) => (
+                                      <TableRow key={e.id} className="hover:bg-muted/20 opacity-70">
+                                        <TableCell className="font-medium">{e.title}</TableCell>
+                                        <TableCell className="text-muted-foreground">{e.date}</TableCell>
+                                        <TableCell>{e.cities?.name && <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"><MapPin className="h-3 w-3" /> {e.cities.name}</span>}</TableCell>
+                                        <TableCell>{e.categories?.name && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium"><Tag className="h-3 w-3" /> {e.categories.name}</span>}</TableCell>
+                                        <TableCell className="text-right">
+                                          <div className="flex justify-end gap-1">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openDialog("event", e)}><Pencil className="h-3.5 w-3.5" /></Button>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete("events", e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                                          </div>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
                               </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        )}
+                      </>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             </TabsContent>
