@@ -9,10 +9,10 @@
     --background: 40 20% 97%;
     --foreground: 220 20% 12%;
 
-    --card: 40 15% 99%;
+    --card: 0 0% 100%;
     --card-foreground: 220 20% 12%;
 
-    --popover: 40 15% 99%;
+    --popover: 0 0% 100%;
     --popover-foreground: 220 20% 12%;
 
     --primary: 168 45% 28%;
@@ -34,7 +34,7 @@
     --input: 40 15% 88%;
     --ring: 168 45% 28%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 168 30% 12%;
     --sidebar-foreground: 40 20% 97%;
@@ -45,9 +45,10 @@
     --sidebar-border: 168 20% 22%;
     --sidebar-ring: 38 70% 55%;
 
-    --hero-gradient: linear-gradient(135deg, hsl(168 45% 22%), hsl(168 35% 32%), hsl(185 30% 25%));
+    --hero-gradient: linear-gradient(135deg, hsl(168 45% 18%), hsl(168 35% 28%), hsl(185 30% 22%));
     --gold: 38 70% 55%;
     --gold-light: 38 60% 75%;
+    --primary-glow: 168 50% 42%;
     --bg-texture: url('/images/bg-texture.jpg');
 
     --font-display: 'Playfair Display', serif;
@@ -109,4 +110,30 @@
   .font-body {
     font-family: var(--font-body);
   }
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-light)) 50%, hsl(var(--gold)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .shimmer {
+    background: linear-gradient(
+      110deg,
+      transparent 33%,
+      hsl(var(--gold-light) / 0.15) 50%,
+      transparent 67%
+    );
+    background-size: 300% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
