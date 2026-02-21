@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       type: "recovery",
       email,
       options: {
-        redirectTo: redirectUrl || `${Deno.env.get("SUPABASE_URL")!.replace('.supabase.co', '.lovable.app')}/sifre-sifirla`,
+        redirectTo: "https://refikkesifinsa.online/sifre-sifirla",
       },
     });
 
