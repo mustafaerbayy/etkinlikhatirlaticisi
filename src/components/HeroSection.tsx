@@ -39,7 +39,7 @@ const HeroSection = () => {
 
           Refik, Keşif
           <br />
-          <span className="text-gradient my-[3px]">ve İnşa</span>
+          <span className="text-gradient block mt-3">ve İnşa</span>
         </motion.h1>
 
         <motion.p
