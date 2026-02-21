@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 const Navbar = () => {
@@ -15,42 +15,43 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-border/50 glass">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
-        <Link to="/" className="font-display text-xl font-bold text-primary transition-transform duration-200 hover:scale-110 inline-block">
-          Refik, Keşif ve İnşa
+        <Link to="/" className="flex items-center gap-2 group">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <span className="font-display text-lg font-bold text-foreground tracking-tight">
+            Refik
+          </span>
         </Link>
 
         {/* Desktop */}
-        <div className="hidden items-center gap-6 md:flex">
-          <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-all duration-200 hover:scale-110 inline-block">
-            Etkinlikler
-          </Link>
-          {user && (
-            <Link to="/profil" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-all duration-200 hover:scale-110 inline-block">
-              Hatırlatıcılar
-            </Link>
-          )}
-          {isAdmin && (
-            <Link to="/yonetim" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-all duration-200 hover:scale-110 inline-block">
-              Yönetim
-            </Link>
-          )}
+        <div className="hidden items-center gap-1 md:flex">
+          <NavItem to="/" label="Etkinlikler" />
+          {user && <NavItem to="/profil" label="Hatırlatıcılar" />}
+          {isAdmin && <NavItem to="/yonetim" label="Yönetim" />}
+          
+          <div className="ml-3 h-5 w-px bg-border" />
+          
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground transition-all duration-200 hover:scale-110 inline-block cursor-default">
-                {profile?.first_name} {profile?.last_name}
+            <div className="ml-3 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                {profile?.first_name?.[0] || "U"}
+              </div>
+              <span className="text-sm font-medium text-foreground">
+                {profile?.first_name}
               </span>
-              <Button variant="ghost" size="sm" className="transition-all duration-200 hover:scale-110" onClick={handleSignOut}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           ) : (
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="transition-all duration-200 hover:scale-110" onClick={() => navigate("/giris")}>
+            <div className="ml-3 flex gap-2">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/giris")}>
                 Giriş Yap
               </Button>
-              <Button size="sm" className="transition-all duration-200 hover:scale-110" onClick={() => navigate("/kayit")}>
+              <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-sm" onClick={() => navigate("/kayit")}>
                 Abone Ol
               </Button>
             </div>
@@ -58,38 +59,32 @@ const Navbar = () => {
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button className="md:hidden p-1.5 rounded-lg hover:bg-muted transition-colors" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t bg-card px-4 py-4 md:hidden">
-          <div className="flex flex-col gap-3">
-            <Link to="/" className="text-sm font-medium" onClick={() => setMobileOpen(false)}>
-              Etkinlikler
-            </Link>
-            {user && (
-              <Link to="/profil" className="text-sm font-medium" onClick={() => setMobileOpen(false)}>
-                Hatırlatıcılar
-              </Link>
-            )}
-            {isAdmin && (
-              <Link to="/yonetim" className="text-sm font-medium" onClick={() => setMobileOpen(false)}>
-                Yönetim
-              </Link>
-            )}
+        <div className="border-t border-border/50 bg-card px-4 py-4 md:hidden animate-fade-in">
+          <div className="flex flex-col gap-1">
+            <MobileNavItem to="/" label="Etkinlikler" onClick={() => setMobileOpen(false)} />
+            {user && <MobileNavItem to="/profil" label="Hatırlatıcılar" onClick={() => setMobileOpen(false)} />}
+            {isAdmin && <MobileNavItem to="/yonetim" label="Yönetim" onClick={() => setMobileOpen(false)} />}
+            <div className="my-2 h-px bg-border" />
             {user ? (
-              <Button variant="ghost" size="sm" className="justify-start" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" /> Çıkış Yap
-              </Button>
+              <button
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4" /> Çıkış Yap
+              </button>
             ) : (
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => { navigate("/giris"); setMobileOpen(false); }}>
+                <Button variant="ghost" size="sm" className="flex-1" onClick={() => { navigate("/giris"); setMobileOpen(false); }}>
                   Giriş Yap
                 </Button>
-                <Button size="sm" onClick={() => { navigate("/kayit"); setMobileOpen(false); }}>
+                <Button size="sm" className="flex-1" onClick={() => { navigate("/kayit"); setMobileOpen(false); }}>
                   Abone Ol
                 </Button>
               </div>
@@ -100,5 +95,24 @@ const Navbar = () => {
     </nav>
   );
 };
+
+const NavItem = ({ to, label }: { to: string; label: string }) => (
+  <Link
+    to={to}
+    className="relative px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50"
+  >
+    {label}
+  </Link>
+);
+
+const MobileNavItem = ({ to, label, onClick }: { to: string; label: string; onClick: () => void }) => (
+  <Link
+    to={to}
+    className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+    onClick={onClick}
+  >
+    {label}
+  </Link>
+);
 
 export default Navbar;
