@@ -17,7 +17,9 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // Allow "admin" as shorthand for admin@admin.com
+    const loginEmail = email.includes("@") ? email : `${email}@admin.com`;
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
     setLoading(false);
     if (error) {
       toast.error("Giriş başarısız: " + error.message);
@@ -39,8 +41,8 @@ const Login = () => {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-posta</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Label htmlFor="email">E-posta veya Kullanıcı Adı</Label>
+                <Input id="email" type="text" placeholder="admin" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Şifre</Label>
