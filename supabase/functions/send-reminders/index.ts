@@ -50,8 +50,9 @@ serve(async (req) => {
     }
 
     for (const event of events) {
-      // Build event datetime
-      const eventDateTime = new Date(`${event.date}T${event.time}`);
+      // Build event datetime in Turkey timezone (UTC+3)
+      // Events are stored in local Turkey time, so we need to parse them as Turkey time
+      const eventDateTime = new Date(`${event.date}T${event.time}+03:00`);
       const msUntilEvent = eventDateTime.getTime() - now.getTime();
 
       // Skip past events
