@@ -14,9 +14,10 @@ interface EventCardProps {
   categoryName: string;
   attendeeCount: number;
   index?: number;
+  isPast?: boolean;
 }
 
-const EventCard = ({ id, title, date, time, cityName, categoryName, attendeeCount, index = 0 }: EventCardProps) => {
+const EventCard = ({ id, title, date, time, cityName, categoryName, attendeeCount, index = 0, isPast = false }: EventCardProps) => {
   const navigate = useNavigate();
 
   return (
@@ -24,6 +25,7 @@ const EventCard = ({ id, title, date, time, cityName, categoryName, attendeeCoun
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
+      className={isPast ? "opacity-50 grayscale" : ""}
     >
       <Card
         className="group cursor-pointer overflow-hidden border-border/40 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1.5"
