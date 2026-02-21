@@ -6,7 +6,7 @@ import { Search, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
 import EventCard from "@/components/EventCard";
 import HeroSection from "@/components/HeroSection";
-import AboutSection from "@/components/AboutSection";
+import AboutModal from "@/components/AboutModal";
 import Navbar from "@/components/Navbar";
 
 interface EventWithRelations {
@@ -31,6 +31,7 @@ const Index = () => {
   const [cityFilter, setCityFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,9 +67,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar onAboutClick={() => setAboutOpen(true)} />
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
       <HeroSection />
-      <AboutSection />
       <section id="events-section" className="container mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
