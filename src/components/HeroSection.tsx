@@ -12,8 +12,8 @@ const HeroSection = () => {
       {/* Background image with parallax feel */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
-        style={{ backgroundImage: `url(${heroSunset})` }}
-      />
+        style={{ backgroundImage: `url(${heroSunset})` }} />
+
       {/* Rich gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/50 to-background" />
       {/* Decorative pattern */}
@@ -23,8 +23,8 @@ const HeroSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
+          transition={{ duration: 0.8, ease: "easeOut" }}>
+
           <div className="inline-flex items-center gap-2 rounded-full border border-gold-light/30 bg-primary-foreground/10 backdrop-blur-sm px-4 py-1.5 mb-6">
             <Sparkles className="h-3.5 w-3.5 text-gold" />
             <span className="text-xs font-medium tracking-wide text-primary-foreground/90 uppercase">Kültür · Sanat · Keşif</span>
@@ -35,19 +35,19 @@ const HeroSection = () => {
           className="font-display text-5xl font-bold text-primary-foreground md:text-7xl lg:text-8xl drop-shadow-2xl"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
-        >
+          transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}>
+
           Refik, Keşif
           <br />
-          <span className="text-gradient">ve İnşa</span>
+          <span className="text-gradient my-[3px]">ve İnşa</span>
         </motion.h1>
 
         <motion.p
           className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/85 md:text-xl leading-relaxed"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}
-        >
+          transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}>
+
           Kültürel keşifler, sanatsal buluşmalar ve yaratıcı deneyimler için tek adres.
         </motion.p>
 
@@ -55,13 +55,13 @@ const HeroSection = () => {
           className="mt-10 flex items-center justify-center gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
-        >
+          transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}>
+
           <Button
             size="lg"
             className="bg-accent text-accent-foreground font-semibold hover:bg-accent/90 px-8 py-6 text-base shadow-xl shadow-accent/20 transition-all duration-300 hover:shadow-2xl hover:shadow-accent/30 hover:-translate-y-0.5"
-            onClick={() => navigate("/kayit")}
-          >
+            onClick={() => navigate("/kayit")}>
+
             Abone Ol
           </Button>
           <Button
@@ -70,8 +70,8 @@ const HeroSection = () => {
             className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 px-8 py-6 text-base backdrop-blur-sm"
             onClick={() => {
               document.querySelector('#events-section')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
+            }}>
+
             Etkinlikleri Keşfet
           </Button>
         </motion.div>
@@ -83,8 +83,8 @@ const HeroSection = () => {
           <path d="M0 40C240 80 480 0 720 40C960 80 1200 0 1440 40V80H0V40Z" fill="hsl(var(--background))" />
         </svg>
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 export default HeroSection;
