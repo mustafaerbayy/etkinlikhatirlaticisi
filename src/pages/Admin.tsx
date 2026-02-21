@@ -26,6 +26,7 @@ interface Event {
   cities: { name: string } | null; venues: { name: string } | null; categories: { name: string } | null;
 }
 interface Profile { id: string; first_name: string; last_name: string; email?: string }
+interface AdminUser { id: string; email: string; first_name: string; last_name: string }
 interface Announcement {
   id: string; subject: string; body: string; recipient_count: number; created_at: string;
   announcement_recipients?: { status: string }[];
@@ -52,6 +53,11 @@ const Admin = () => {
   const [emailBody, setEmailBody] = useState("");
   const [sending, setSending] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  // Admin management state
+  const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [adminLoading, setAdminLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -92,7 +98,39 @@ const Admin = () => {
     });
   };
 
-  useEffect(() => { if (isAdmin) fetchAll(); }, [isAdmin]);
+  const fetchAdmins = async () => {
+    const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "list" } });
+    if (!error && data?.admins) setAdmins(data.admins);
+  };
+
+  const handleAddAdmin = async () => {
+    if (!newAdminEmail.trim()) { toast.error("Lütfen bir e-posta adresi girin."); return; }
+    setAdminLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "add", email: newAdminEmail.trim() } });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Admin eklendi.");
+      setNewAdminEmail("");
+      fetchAdmins();
+    } catch (err: any) { toast.error(err.message || "Admin eklenemedi."); }
+    finally { setAdminLoading(false); }
+  };
+
+  const handleRemoveAdmin = async (userId: string) => {
+    if (!confirm("Bu kullanıcının admin yetkisini kaldırmak istediğinizden emin misiniz?")) return;
+    setAdminLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "remove", user_id: userId } });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Admin yetkisi kaldırıldı.");
+      fetchAdmins();
+    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    finally { setAdminLoading(false); }
+  };
+
+  useEffect(() => { if (isAdmin) { fetchAll(); fetchAdmins(); } }, [isAdmin]);
 
   const openDialog = (type: typeof dialogType, item?: any) => {
     setDialogType(type);
@@ -273,6 +311,9 @@ const Admin = () => {
               </TabsTrigger>
               <TabsTrigger value="announcements" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Megaphone className="h-3.5 w-3.5" /> Duyurular
+              </TabsTrigger>
+              <TabsTrigger value="admins" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Shield className="h-3.5 w-3.5" /> Adminler
               </TabsTrigger>
             </TabsList>
 
@@ -519,6 +560,75 @@ const Admin = () => {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+            {/* Admins Tab */}
+            <TabsContent value="admins">
+              <Card className="border-border/50 bg-card/70 backdrop-blur-sm mt-4">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm text-muted-foreground">{admins.length} admin</p>
+                  </div>
+
+                  {/* Add admin */}
+                  <div className="flex gap-2 mb-4">
+                    <Input
+                      placeholder="Kullanıcı e-posta adresi..."
+                      value={newAdminEmail}
+                      onChange={(e) => setNewAdminEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleAddAdmin()}
+                    />
+                    <Button size="sm" className="gap-1.5 shadow-sm shrink-0" onClick={handleAddAdmin} disabled={adminLoading}>
+                      <Plus className="h-4 w-4" /> Admin Ekle
+                    </Button>
+                  </div>
+
+                  <div className="rounded-xl border border-border/50 overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30 hover:bg-muted/30">
+                          <TableHead className="font-semibold">Ad Soyad</TableHead>
+                          <TableHead className="font-semibold">E-posta</TableHead>
+                          <TableHead className="text-right font-semibold">İşlem</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {admins.map((a) => (
+                          <TableRow key={a.id} className="hover:bg-muted/20">
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
+                                  {a.first_name?.[0] || a.email?.[0]?.toUpperCase() || "?"}
+                                </div>
+                                {a.first_name} {a.last_name}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">{a.email}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => handleRemoveAdmin(a.id)}
+                                disabled={adminLoading || a.id === user?.id}
+                                title={a.id === user?.id ? "Kendinizi çıkaramazsınız" : "Admin yetkisini kaldır"}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {admins.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                              Henüz admin bulunmuyor
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </motion.div>
