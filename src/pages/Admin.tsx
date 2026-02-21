@@ -97,8 +97,8 @@ const Admin = () => {
       return;
     }
     if (dialogType === "event") {
-      if (!formData.city_id || !formData.venue_id || !formData.category_id || !formData.title || !formData.date || !formData.time) {
-        toast.error("Lütfen tüm alanları doldurun.");
+      if (!formData.title || !formData.date || !formData.time || !formData.category_id) {
+        toast.error("Lütfen başlık, tarih, saat ve kategori alanlarını doldurun.");
         return;
       }
     }
