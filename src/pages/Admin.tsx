@@ -106,11 +106,17 @@ const Admin = () => {
       toast.error("Lütfen bir ad girin.");
       return;
     }
+    // Convert empty strings to null for optional UUID fields
+    const dataToSave = { ...formData };
+    if (dialogType === "event") {
+      if (!dataToSave.city_id) dataToSave.city_id = null;
+      if (!dataToSave.venue_id) dataToSave.venue_id = null;
+    }
     const doSave = async (table: "cities" | "categories" | "venues" | "events") => {
       if (editingItem) {
-        return supabase.from(table).update(formData).eq("id", editingItem.id);
+        return supabase.from(table).update(dataToSave).eq("id", editingItem.id);
       } else {
-        return supabase.from(table).insert(formData);
+        return supabase.from(table).insert(dataToSave);
       }
     };
     const table = dialogType === "city" ? "cities" as const : dialogType === "category" ? "categories" as const : dialogType === "venue" ? "venues" as const : "events" as const;

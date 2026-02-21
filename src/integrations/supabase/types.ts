@@ -47,36 +47,36 @@ export type Database = {
       events: {
         Row: {
           category_id: string
-          city_id: string
+          city_id: string | null
           created_at: string
           date: string
           description: string
           id: string
           time: string
           title: string
-          venue_id: string
+          venue_id: string | null
         }
         Insert: {
           category_id: string
-          city_id: string
+          city_id?: string | null
           created_at?: string
           date: string
           description?: string
           id?: string
           time: string
           title: string
-          venue_id: string
+          venue_id?: string | null
         }
         Update: {
           category_id?: string
-          city_id?: string
+          city_id?: string | null
           created_at?: string
           date?: string
           description?: string
           id?: string
           time?: string
           title?: string
-          venue_id?: string
+          venue_id?: string | null
         }
         Relationships: [
           {
