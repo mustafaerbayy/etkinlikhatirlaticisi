@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CalendarDays } from "lucide-react";
+import { Search, CalendarDays, History } from "lucide-react";
 import { motion } from "framer-motion";
 import EventCard from "@/components/EventCard";
 import HeroSection from "@/components/HeroSection";
@@ -169,7 +169,42 @@ const Index = () => {
           </div>
         )}
 
-        {/* Past Events - Hidden */}
+        {/* Past Events */}
+        {!loading && pastEvents.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mt-12"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <History className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="font-display text-2xl font-bold text-foreground">
+                Geçmiş Etkinlikler
+              </h3>
+              <span className="text-sm text-muted-foreground">({pastEvents.length})</span>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {pastEvents.map((event, i) => (
+                <EventCard
+                  key={event.id}
+                  id={event.id}
+                  title={event.title}
+                  date={event.date}
+                  time={event.time}
+                  cityName={event.cities?.name || ""}
+                  categoryName={event.categories?.name || ""}
+                  attendeeCount={getAttendeeCount(event.rsvps || [])}
+                  index={i}
+                  isPast
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
       </section>
 
       {/* Footer */}
