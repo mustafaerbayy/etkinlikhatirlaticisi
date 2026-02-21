@@ -99,8 +99,27 @@ const Admin = () => {
   };
 
   const fetchAdmins = async () => {
-    const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "list" } });
-    if (!error && data?.admins) setAdmins(data.admins);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "list" } });
+      if (error) {
+        console.error("Failed to fetch admins:", error);
+        return;
+      }
+      if (data?.admins) setAdmins(data.admins);
+    } catch (err) {
+      console.error("Failed to fetch admins:", err);
+    }
+  };
+
+  const parseEdgeFnError = async (error: any): Promise<string> => {
+    if (error?.context?.body) {
+      try {
+        const text = await error.context.text();
+        const parsed = JSON.parse(text);
+        return parsed.error || "Bilinmeyen hata";
+      } catch { /* ignore */ }
+    }
+    return error?.message || "Bilinmeyen hata";
   };
 
   const handleAddAdmin = async () => {
@@ -108,8 +127,12 @@ const Admin = () => {
     setAdminLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "add", email: newAdminEmail.trim() } });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error) {
+        const msg = await parseEdgeFnError(error);
+        toast.error(msg);
+        return;
+      }
+      if (data?.error) { toast.error(data.error); return; }
       toast.success("Admin eklendi.");
       setNewAdminEmail("");
       fetchAdmins();
@@ -122,8 +145,12 @@ const Admin = () => {
     setAdminLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "remove", user_id: userId } });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error) {
+        const msg = await parseEdgeFnError(error);
+        toast.error(msg);
+        return;
+      }
+      if (data?.error) { toast.error(data.error); return; }
       toast.success("Admin yetkisi kaldırıldı.");
       fetchAdmins();
     } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
