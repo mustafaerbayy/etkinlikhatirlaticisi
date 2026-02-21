@@ -29,6 +29,7 @@ const Navbar = () => {
         {/* Desktop */}
         <div className="hidden items-center gap-1 md:flex">
           <NavItem to="/" label="Etkinlikler" />
+          <a href="/#about-section" className="relative px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50" onClick={(e) => { e.preventDefault(); document.querySelector('#about-section')?.scrollIntoView({ behavior: 'smooth' }); }}>Hakkımızda</a>
           {user && <NavItem to="/profil" label="Hatırlatıcılar" />}
           {isAdmin && <NavItem to="/yonetim" label="Yönetim" />}
           
@@ -69,6 +70,7 @@ const Navbar = () => {
         <div className="border-t border-border/50 bg-card px-4 py-4 md:hidden animate-fade-in">
           <div className="flex flex-col gap-1">
             <MobileNavItem to="/" label="Etkinlikler" onClick={() => setMobileOpen(false)} />
+            <a href="/#about-section" className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors" onClick={(e) => { e.preventDefault(); document.querySelector('#about-section')?.scrollIntoView({ behavior: 'smooth' }); setMobileOpen(false); }}>Hakkımızda</a>
             {user && <MobileNavItem to="/profil" label="Hatırlatıcılar" onClick={() => setMobileOpen(false)} />}
             {isAdmin && <MobileNavItem to="/yonetim" label="Yönetim" onClick={() => setMobileOpen(false)} />}
             <div className="my-2 h-px bg-border" />
