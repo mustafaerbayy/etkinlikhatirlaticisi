@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CalendarDays } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Search, CalendarDays, ChevronDown, History } from "lucide-react";
 import { motion } from "framer-motion";
 import EventCard from "@/components/EventCard";
 import HeroSection from "@/components/HeroSection";
@@ -39,7 +40,6 @@ const Index = () => {
         supabase
           .from("events")
           .select("*, cities(name), categories(name), rsvps(status, guest_count)")
-          .gte("date", new Date().toISOString().split("T")[0])
           .order("date", { ascending: true }),
         supabase.from("cities").select("*").order("name"),
         supabase.from("categories").select("*").order("name"),
@@ -52,12 +52,18 @@ const Index = () => {
     fetchData();
   }, []);
 
+  const today = new Date().toISOString().split("T")[0];
+  const [pastOpen, setPastOpen] = useState(false);
+
   const filteredEvents = events.filter((e) => {
     const matchesSearch = e.title.toLowerCase().includes(search.toLowerCase());
     const matchesCity = cityFilter === "all" || e.city_id === cityFilter;
     const matchesCategory = categoryFilter === "all" || e.category_id === categoryFilter;
     return matchesSearch && matchesCity && matchesCategory;
   });
+
+  const upcomingEvents = filteredEvents.filter((e) => e.date >= today);
+  const pastEvents = filteredEvents.filter((e) => e.date < today).reverse();
 
   const getAttendeeCount = (rsvps: { status: string; guest_count: number }[]) => {
     return rsvps
@@ -135,7 +141,7 @@ const Index = () => {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             <p className="text-sm text-muted-foreground">Etkinlikler yükleniyor...</p>
           </div>
-        ) : filteredEvents.length === 0 ? (
+        ) : upcomingEvents.length === 0 ? (
           <motion.div
             className="mt-16 text-center"
             initial={{ opacity: 0 }}
@@ -149,7 +155,7 @@ const Index = () => {
           </motion.div>
         ) : (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredEvents.map((event, i) => (
+            {upcomingEvents.map((event, i) => (
               <EventCard
                 key={event.id}
                 id={event.id}
@@ -163,6 +169,37 @@ const Index = () => {
               />
             ))}
           </div>
+        )}
+
+        {/* Past Events */}
+        {!loading && pastEvents.length > 0 && (
+          <Collapsible open={pastOpen} onOpenChange={setPastOpen} className="mt-12">
+            <CollapsibleTrigger className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm px-5 py-4 transition-colors hover:bg-card/80">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+                <History className="h-4.5 w-4.5 text-muted-foreground" />
+              </div>
+              <span className="font-display text-lg font-semibold text-foreground">Geçmiş Etkinlikler</span>
+              <span className="ml-1 text-sm text-muted-foreground">({pastEvents.length})</span>
+              <ChevronDown className={`ml-auto h-5 w-5 text-muted-foreground transition-transform duration-200 ${pastOpen ? "rotate-180" : ""}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {pastEvents.map((event, i) => (
+                  <EventCard
+                    key={event.id}
+                    id={event.id}
+                    title={event.title}
+                    date={event.date}
+                    time={event.time}
+                    cityName={event.cities?.name || ""}
+                    categoryName={event.categories?.name || ""}
+                    attendeeCount={getAttendeeCount(event.rsvps || [])}
+                    index={i}
+                  />
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </section>
 
