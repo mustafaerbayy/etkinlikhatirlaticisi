@@ -42,7 +42,7 @@ const Login = () => {
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">E-posta veya Kullanıcı Adı</Label>
-                <Input id="email" type="text" placeholder="admin" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input id="email" type="text" placeholder="ornek@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Şifre</Label>
