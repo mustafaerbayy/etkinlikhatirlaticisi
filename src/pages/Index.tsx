@@ -6,6 +6,7 @@ import { Search, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
 import EventCard from "@/components/EventCard";
 import HeroSection from "@/components/HeroSection";
+import AboutSection from "@/components/AboutSection";
 import Navbar from "@/components/Navbar";
 
 interface EventWithRelations {
@@ -67,7 +68,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
-
+      <AboutSection />
       <section id="events-section" className="container mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
