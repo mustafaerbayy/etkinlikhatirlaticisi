@@ -13,6 +13,7 @@ const Register = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailConfirm, setEmailConfirm] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,6 +21,10 @@ const Register = () => {
     e.preventDefault();
     if (firstName.trim().length === 0 || lastName.trim().length === 0) {
       toast.error("Ad ve soyad gereklidir.");
+      return;
+    }
+    if (email !== emailConfirm) {
+      toast.error("E-posta adresleri eşleşmiyor.");
       return;
     }
     setLoading(true);
@@ -64,6 +69,10 @@ const Register = () => {
               <div className="space-y-2">
                 <Label htmlFor="email">E-posta</Label>
                 <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="emailConfirm">E-posta (Tekrar)</Label>
+                <Input id="emailConfirm" type="email" value={emailConfirm} onChange={(e) => setEmailConfirm(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Şifre</Label>
