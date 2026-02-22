@@ -176,7 +176,6 @@ const Admin = () => {
     } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
     finally { setAdminLoading(false); }
   };
-  };
 
   useEffect(() => { if (isAdmin) { fetchAll(); fetchAdmins(); } }, [isAdmin]);
 
