@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CalendarDays, Loader } from "lucide-react";
+import { Search, CalendarDays, Loader, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import EventCard from "@/components/EventCard";
 import HeroSection from "@/components/HeroSection";
@@ -220,6 +220,72 @@ const Index = () => {
           )}
         </div>
       </section>
+
+      {/* Past Events Section */}
+      {pastEvents.length > 0 && (
+        <section className="relative py-20 bg-muted/20">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              className="absolute top-20 -left-40 w-80 h-80 bg-gradient-to-br from-muted/10 to-accent/5 rounded-full blur-3xl"
+              animate={{ y: [0, 50, 0] }}
+              transition={{ duration: 8, repeat: Infinity }}
+            />
+            <motion.div
+              className="absolute bottom-20 -right-40 w-80 h-80 bg-gradient-to-br from-accent/10 to-muted/5 rounded-full blur-3xl"
+              animate={{ y: [0, -50, 0] }}
+              transition={{ duration: 8, repeat: Infinity }}
+            />
+          </div>
+
+          <div className="container mx-auto px-4 relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <motion.div 
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/30 to-muted/10 shadow-lg shadow-muted/20"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Clock className="h-6 w-6 text-muted-foreground font-bold" />
+                </motion.div>
+                <h2 className="font-display text-4xl font-bold text-foreground md:text-5xl">
+                  Geçmiş Etkinlikler
+                </h2>
+              </div>
+              <p className="text-muted-foreground mt-2 text-lg">Önceki etkinlikleri görüntüleyin</p>
+            </motion.div>
+
+            {/* Past Events Grid */}
+            <motion.div 
+              className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ staggerChildren: 0.05 }}
+            >
+              {pastEvents.map((event, i) => (
+                <EventCard
+                  key={event.id}
+                  id={event.id}
+                  title={event.title}
+                  date={event.date}
+                  time={event.time}
+                  cityName={event.cities?.name || ""}
+                  venueName={event.venues?.name}
+                  categoryName={event.categories?.name || ""}
+                  attendeeCount={getAttendeeCount(event.rsvps || [])}
+                  index={i}
+                  isPast={true}
+                />
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Enhanced Footer */}
       <footer className="relative border-t border-border/50 bg-card/80 backdrop-blur-md overflow-hidden">

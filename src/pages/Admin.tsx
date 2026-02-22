@@ -433,7 +433,43 @@ const Admin = () => {
                           </Table>
                         </div>
 
-                        {/* Past Events - Hidden */}
+                        {/* Past Events Section */}
+                        {pastEvents.length > 0 && (
+                          <div className="mt-8 pt-6 border-t border-border/30">
+                            <p className="text-sm text-muted-foreground mb-4 font-semibold flex items-center gap-2">
+                              <Clock className="h-4 w-4" /> {pastEvents.length} geçmiş etkinlik
+                            </p>
+                            <div className="rounded-xl border border-border/50 overflow-hidden">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow className="bg-muted/30 hover:bg-muted/30">
+                                    <TableHead className="font-semibold">Başlık</TableHead>
+                                    <TableHead className="font-semibold">Tarih</TableHead>
+                                    <TableHead className="font-semibold">Şehir</TableHead>
+                                    <TableHead className="font-semibold">Kategori</TableHead>
+                                    <TableHead className="text-right font-semibold">İşlem</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {pastEvents.map((e) => (
+                                    <TableRow key={e.id} className="hover:bg-muted/20 opacity-60">
+                                      <TableCell className="font-medium">{e.title}</TableCell>
+                                      <TableCell className="text-muted-foreground">{e.date}</TableCell>
+                                      <TableCell>{e.cities?.name && <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"><MapPin className="h-3 w-3" /> {e.cities.name}</span>}</TableCell>
+                                      <TableCell>{e.categories?.name && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium"><Tag className="h-3 w-3" /> {e.categories.name}</span>}</TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="flex justify-end gap-1">
+                                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openDialog("event", e)}><Pencil className="h-3.5 w-3.5" /></Button>
+                                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete("events", e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </div>
+                        )}
                       </>
                     );
                   })()}
