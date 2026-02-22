@@ -11,13 +11,14 @@ interface EventCardProps {
   date: string;
   time: string;
   cityName: string;
+  venueName?: string;
   categoryName: string;
   attendeeCount: number;
   index?: number;
   isPast?: boolean;
 }
 
-const EventCard = ({ id, title, date, time, cityName, categoryName, attendeeCount, index = 0, isPast = false }: EventCardProps) => {
+const EventCard = ({ id, title, date, time, cityName, venueName, categoryName, attendeeCount, index = 0, isPast = false }: EventCardProps) => {
   const navigate = useNavigate();
 
   return (
@@ -106,7 +107,10 @@ const EventCard = ({ id, title, date, time, cityName, categoryName, attendeeCoun
                   >
                     <MapPin className="h-4 w-4 text-primary" />
                   </motion.div>
-                  <span className="font-semibold">{cityName}</span>
+                  <div className="flex flex-col">
+                    <span className="font-semibold">{cityName}</span>
+                    {venueName && <span className="text-xs text-muted-foreground/80">{venueName}</span>}
+                  </div>
                 </motion.div>
               )}
             </div>

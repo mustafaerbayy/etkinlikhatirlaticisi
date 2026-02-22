@@ -19,6 +19,7 @@ interface EventWithRelations {
   venue_id: string;
   category_id: string;
   cities: { name: string } | null;
+  venues: { name: string } | null;
   categories: { name: string } | null;
   rsvps: { status: string; guest_count: number }[];
 }
@@ -38,7 +39,7 @@ const Index = () => {
       const [eventsRes, citiesRes, categoriesRes] = await Promise.all([
         supabase
           .from("events")
-          .select("*, cities(name), categories(name), rsvps(status, guest_count)")
+          .select("*, cities(name), venues(name), categories(name), rsvps(status, guest_count)")
           .order("date", { ascending: true }),
         supabase.from("cities").select("*").order("name"),
         supabase.from("categories").select("*").order("name"),
@@ -208,6 +209,7 @@ const Index = () => {
                   date={event.date}
                   time={event.time}
                   cityName={event.cities?.name || ""}
+                  venueName={event.venues?.name}
                   categoryName={event.categories?.name || ""}
                   attendeeCount={getAttendeeCount(event.rsvps || [])}
                   index={i}
