@@ -1,5 +1,19 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@4.0.0";
+class Resend {
+  private apiKey: string;
+  constructor(apiKey: string) { this.apiKey = apiKey; }
+  emails = {
+    send: async (params: { from: string; to: string[]; subject: string; html: string }) => {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!res.ok) { const text = await res.text(); return { error: new Error(text) }; }
+      return { data: await res.json(), error: null };
+    }
+  };
+}
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
