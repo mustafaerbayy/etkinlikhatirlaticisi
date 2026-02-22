@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, History } from "lucide-react";
+import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface City { id: string; name: string }
@@ -45,6 +45,8 @@ const Admin = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<"city" | "category" | "venue" | "event">("city");
   const [formData, setFormData] = useState<any>({});
+  const [useCustomVenue, setUseCustomVenue] = useState(false);
+  const [customVenueName, setCustomVenueName] = useState("");
 
   // Announcement state
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -162,6 +164,8 @@ const Admin = () => {
   const openDialog = (type: typeof dialogType, item?: any) => {
     setDialogType(type);
     setEditingItem(item || null);
+    setUseCustomVenue(false);
+    setCustomVenueName("");
     if (type === "city") setFormData({ name: item?.name || "" });
     else if (type === "category") setFormData({ name: item?.name || "" });
     else if (type === "venue") setFormData({ name: item?.name || "", city_id: item?.city_id || "" });
@@ -178,7 +182,26 @@ const Admin = () => {
       if (!formData.title || !formData.date || !formData.time || !formData.category_id) { toast.error("Lütfen başlık, tarih, saat ve kategori alanlarını doldurun."); return; }
     }
     if ((dialogType === "city" || dialogType === "category") && !formData.name?.trim()) { toast.error("Lütfen bir ad girin."); return; }
-    const dataToSave = { ...formData };
+    
+    let dataToSave = { ...formData };
+    let createdVenueId: string | null = null;
+    
+    if (dialogType === "event" && useCustomVenue && customVenueName.trim()) {
+      const { data: newVenue, error: venueError } = await supabase
+        .from("venues")
+        .insert({ name: customVenueName.trim(), city_id: formData.city_id })
+        .select()
+        .single();
+      
+      if (venueError) {
+        toast.error("Mekan oluşturulamadı: " + venueError.message);
+        return;
+      }
+      
+      createdVenueId = newVenue.id;
+      dataToSave.venue_id = createdVenueId;
+    }
+    
     if (dialogType === "event") { if (!dataToSave.city_id) dataToSave.city_id = null; if (!dataToSave.venue_id) dataToSave.venue_id = null; }
     const doSave = async (table: "cities" | "categories" | "venues" | "events") => {
       if (editingItem) return supabase.from(table).update(dataToSave).eq("id", editingItem.id);
@@ -388,44 +411,7 @@ const Admin = () => {
                           </Table>
                         </div>
 
-                        {pastEvents.length > 0 && (
-                          <div className="mt-6">
-                            <div className="flex items-center gap-3 mb-4">
-                              <History className="h-5 w-5 text-muted-foreground" />
-                              <span className="text-sm font-semibold text-foreground">Geçmiş Etkinlikler</span>
-                              <span className="text-xs text-muted-foreground">({pastEvents.length})</span>
-                            </div>
-                            <div className="rounded-xl border border-border/50 overflow-hidden">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow className="bg-muted/30 hover:bg-muted/30">
-                                    <TableHead className="font-semibold">Başlık</TableHead>
-                                    <TableHead className="font-semibold">Tarih</TableHead>
-                                    <TableHead className="font-semibold">Şehir</TableHead>
-                                    <TableHead className="font-semibold">Kategori</TableHead>
-                                    <TableHead className="text-right font-semibold">İşlem</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {pastEvents.map((e) => (
-                                    <TableRow key={e.id} className="hover:bg-muted/20 opacity-70">
-                                      <TableCell className="font-medium">{e.title}</TableCell>
-                                      <TableCell className="text-muted-foreground">{e.date}</TableCell>
-                                      <TableCell>{e.cities?.name && <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"><MapPin className="h-3 w-3" /> {e.cities.name}</span>}</TableCell>
-                                      <TableCell>{e.categories?.name && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium"><Tag className="h-3 w-3" /> {e.categories.name}</span>}</TableCell>
-                                      <TableCell className="text-right">
-                                        <div className="flex justify-end gap-1">
-                                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openDialog("event", e)}><Pencil className="h-3.5 w-3.5" /></Button>
-                                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete("events", e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </div>
-                        )}
+                        {/* Past Events - Hidden */}
                       </>
                     );
                   })()}
@@ -752,10 +738,24 @@ const Admin = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Mekan</Label>
-                    <Select value={formData.venue_id || ""} onValueChange={(v) => setFormData({ ...formData, venue_id: v })}>
-                      <SelectTrigger><SelectValue placeholder="Mekan seçin" /></SelectTrigger>
-                      <SelectContent>{venues.filter(v => !formData.city_id || v.city_id === formData.city_id).map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
-                    </Select>
+                    {!useCustomVenue ? (
+                      <div className="space-y-2">
+                        <Select value={formData.venue_id || ""} onValueChange={(v) => setFormData({ ...formData, venue_id: v })}>
+                          <SelectTrigger><SelectValue placeholder="Mekan seçin" /></SelectTrigger>
+                          <SelectContent>{venues.filter(v => !formData.city_id || v.city_id === formData.city_id).map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                        <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={() => { setUseCustomVenue(true); setFormData({ ...formData, venue_id: "" }); }}>
+                          + Yeni Mekan Ekle
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Input placeholder="Mekan adını girin" value={customVenueName} onChange={(e) => setCustomVenueName(e.target.value)} />
+                        <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={() => { setUseCustomVenue(false); setCustomVenueName(""); }}>
+                          Mevcut Mekanlardan Seç
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Kategori</Label>
