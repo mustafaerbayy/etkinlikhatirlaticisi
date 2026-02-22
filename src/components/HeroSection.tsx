@@ -253,6 +253,13 @@ const HeroSection = () => {
             <div className="flex flex-wrap gap-4 items-baseline justify-center">
               <motion.span
                 className="font-display text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-yellow-300 via-amber-300 to-orange-300 bg-clip-text drop-shadow-2xl"
+                style={{
+                  textShadow: `
+                    0 0 10px rgba(251, 191, 36, 0.15),
+                    0 0 20px rgba(251, 191, 36, 0.1),
+                    0 0 30px rgba(251, 191, 36, 0.05)
+                  `
+                }}
                 initial={{ opacity: 0, x: -100, scale: 0.8 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.2, type: "spring", stiffness: 100 }}
@@ -262,6 +269,13 @@ const HeroSection = () => {
               </motion.span>
               <motion.span
                 className="font-display text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text drop-shadow-2xl"
+                style={{
+                  textShadow: `
+                    0 0 10px rgba(251, 146, 60, 0.15),
+                    0 0 20px rgba(251, 146, 60, 0.1),
+                    0 0 30px rgba(251, 146, 60, 0.05)
+                  `
+                }}
                 initial={{ opacity: 0, x: 100, scale: 0.8 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.35, type: "spring", stiffness: 100 }}
@@ -275,6 +289,13 @@ const HeroSection = () => {
             <div className="flex justify-center">
               <motion.span
                 className="font-display text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-orange-300 via-yellow-400 to-amber-400 bg-clip-text drop-shadow-2xl"
+                style={{
+                  textShadow: `
+                    0 0 10px rgba(251, 191, 36, 0.15),
+                    0 0 20px rgba(251, 191, 36, 0.1),
+                    0 0 30px rgba(251, 191, 36, 0.05)
+                  `
+                }}
                 initial={{ opacity: 0, y: 60, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.5, type: "spring", stiffness: 100 }}
