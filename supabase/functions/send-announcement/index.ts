@@ -20,7 +20,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -90,7 +90,7 @@ serve(async (req) => {
 
     for (const recipient of recipients) {
       try {
-        await resend.emails.send({
+        await resend.sendEmail({
           from: "Refik Keşif <noreply@refikkesifinsa.online>",
           to: [recipient.email],
           subject,
