@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, UserPlus, Eye } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface City { id: string; name: string }
@@ -27,6 +27,7 @@ interface Event {
 }
 interface Profile { id: string; first_name: string; last_name: string; email?: string }
 interface AdminUser { id: string; email: string; first_name: string; last_name: string; has_announcement_access?: boolean }
+interface ManagedUser { id: string; email: string; first_name: string; last_name: string; created_at: string }
 interface Announcement {
   id: string; subject: string; body: string; recipient_count: number; created_at: string;
   announcement_recipients?: { status: string }[];
@@ -61,6 +62,12 @@ const Admin = () => {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
+
+  // User management state
+  const [allUsers, setAllUsers] = useState<ManagedUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [newUserDialog, setNewUserDialog] = useState(false);
+  const [newUserData, setNewUserData] = useState({ email: "", password: "", first_name: "", last_name: "" });
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -177,7 +184,50 @@ const Admin = () => {
     finally { setAdminLoading(false); }
   };
 
-  useEffect(() => { if (isAdmin) { fetchAll(); fetchAdmins(); } }, [isAdmin]);
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users", { body: { action: "list" } });
+      if (error) { console.error("Failed to fetch users:", error); return; }
+      if (data?.users) setAllUsers(data.users);
+    } catch (err) { console.error("Failed to fetch users:", err); }
+    finally { setUsersLoading(false); }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Bu kullanıcıyı tamamen silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!")) return;
+    setUsersLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users", { body: { action: "delete", user_id: userId } });
+      if (error) { const msg = await parseEdgeFnError(error); toast.error(msg); return; }
+      if (data?.error) { toast.error(data.error); return; }
+      toast.success("Kullanıcı silindi.");
+      fetchUsers();
+      fetchAll();
+    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    finally { setUsersLoading(false); }
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserData.email || !newUserData.password) { toast.error("E-posta ve şifre gereklidir."); return; }
+    if (newUserData.password.length < 6) { toast.error("Şifre en az 6 karakter olmalıdır."); return; }
+    setUsersLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users", {
+        body: { action: "create", ...newUserData },
+      });
+      if (error) { const msg = await parseEdgeFnError(error); toast.error(msg); return; }
+      if (data?.error) { toast.error(data.error); return; }
+      toast.success("Kullanıcı oluşturuldu.");
+      setNewUserDialog(false);
+      setNewUserData({ email: "", password: "", first_name: "", last_name: "" });
+      fetchUsers();
+      fetchAll();
+    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    finally { setUsersLoading(false); }
+  };
+
+  useEffect(() => { if (isAdmin) { fetchAll(); fetchAdmins(); fetchUsers(); } }, [isAdmin]);
 
   const openDialog = (type: typeof dialogType, item?: any) => {
     setDialogType(type);
@@ -380,6 +430,11 @@ const Admin = () => {
               {(user?.email === "admin@admin.com" || hasAnnouncementAccess) && (
                 <TabsTrigger value="announcements" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <Megaphone className="h-3.5 w-3.5" /> Duyurular
+                </TabsTrigger>
+              )}
+              {user?.email === "admin@admin.com" && (
+                <TabsTrigger value="users" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Users className="h-3.5 w-3.5" /> Kullanıcılar
                 </TabsTrigger>
               )}
               {user?.email === "admin@admin.com" && (
@@ -680,6 +735,68 @@ const Admin = () => {
                 </Card>
               </div>
             </TabsContent>}
+            {/* Users Tab */}
+            {user?.email === "admin@admin.com" && <TabsContent value="users">
+              <Card className="border-border/50 bg-card/70 backdrop-blur-sm mt-4">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm text-muted-foreground">{allUsers.length} kullanıcı</p>
+                    <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => setNewUserDialog(true)}>
+                      <UserPlus className="h-4 w-4" /> Yeni Kullanıcı
+                    </Button>
+                  </div>
+                  <div className="rounded-xl border border-border/50 overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30 hover:bg-muted/30">
+                          <TableHead className="font-semibold">Ad Soyad</TableHead>
+                          <TableHead className="font-semibold">E-posta</TableHead>
+                          <TableHead className="font-semibold">Kayıt Tarihi</TableHead>
+                          <TableHead className="text-right font-semibold">İşlem</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {allUsers.map((u) => (
+                          <TableRow key={u.id} className="hover:bg-muted/20">
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
+                                  {u.first_name?.[0] || u.email?.[0]?.toUpperCase() || "?"}
+                                </div>
+                                {u.first_name} {u.last_name}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {new Date(u.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => handleDeleteUser(u.id)}
+                                disabled={usersLoading || u.id === user?.id}
+                                title={u.id === user?.id ? "Kendinizi silemezsiniz" : "Kullanıcıyı sil"}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {allUsers.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                              {usersLoading ? "Yükleniyor..." : "Henüz kullanıcı bulunmuyor"}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>}
             {/* Admins Tab */}
             {user?.email === "admin@admin.com" && <TabsContent value="admins">
               <Card className="border-border/50 bg-card/70 backdrop-blur-sm mt-4">
@@ -842,6 +959,38 @@ const Admin = () => {
                 </>
               )}
               <Button onClick={handleSave} className="w-full shadow-sm">{editingItem ? "Güncelle" : "Ekle"}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* New User Dialog */}
+        <Dialog open={newUserDialog} onOpenChange={setNewUserDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display text-xl">Yeni Kullanıcı Oluştur</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Ad</Label>
+                  <Input value={newUserData.first_name} onChange={(e) => setNewUserData({ ...newUserData, first_name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Soyad</Label>
+                  <Input value={newUserData.last_name} onChange={(e) => setNewUserData({ ...newUserData, last_name: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>E-posta</Label>
+                <Input type="email" value={newUserData.email} onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Şifre</Label>
+                <Input type="password" value={newUserData.password} onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })} />
+              </div>
+              <Button onClick={handleCreateUser} className="w-full shadow-sm" disabled={usersLoading}>
+                {usersLoading ? "Oluşturuluyor..." : "Kullanıcı Oluştur"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
