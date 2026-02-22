@@ -8,6 +8,7 @@ import EventCard from "@/components/EventCard";
 import HeroSection from "@/components/HeroSection";
 import AboutModal from "@/components/AboutModal";
 import Navbar from "@/components/Navbar";
+import OrnamentalLogo from "@/components/OrnamentalLogo";
 
 interface EventWithRelations {
   id: string;
@@ -237,14 +238,14 @@ const Index = () => {
               whileHover={{ x: 5 }}
             >
               <motion.div 
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold shadow-lg shadow-primary/20"
-                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="flex h-12 w-12 items-center justify-center"
+                whileHover={{ scale: 1.1, rotate: 8 }}
               >
-                R
+                <OrnamentalLogo className="h-12 w-12 drop-shadow-xl" />
               </motion.div>
               <div>
-                <span className="font-display text-base font-bold text-foreground group-hover:text-primary transition-colors">Refik</span>
-                <p className="text-xs text-muted-foreground">Keşif ve İnşa</p>
+                <span className="font-display text-base font-bold text-foreground group-hover:text-amber-700 transition-colors">Refik</span>
+                <p className="text-xs text-muted-foreground group-hover:text-blue-900 transition-colors">Keşif ve İnşa</p>
               </div>
             </motion.div>
             <motion.p 

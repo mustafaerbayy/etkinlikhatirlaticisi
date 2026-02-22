@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, Sparkles } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
+import OrnamentalLogo from "@/components/OrnamentalLogo";
 
 interface NavbarProps {
   onAboutClick?: () => void;
@@ -23,15 +24,15 @@ const Navbar = ({ onAboutClick }: NavbarProps) => {
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 pointer-events-none" />
       <div className="container mx-auto flex items-center justify-between px-4 py-3 relative">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-primary-foreground transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-primary/40">
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary to-accent opacity-0 group-hover:opacity-100 blur transition-opacity" />
-            <Sparkles className="h-5 w-5 relative" />
+          <div className="relative flex h-10 w-10 items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-600/20 to-blue-900/20 opacity-0 group-hover:opacity-100 blur-md transition-opacity" />
+            <OrnamentalLogo className="h-10 w-10 relative drop-shadow-lg" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="font-display text-base font-bold text-foreground transition-colors duration-300 group-hover:text-primary">
+            <span className="font-display text-base font-bold text-foreground transition-colors duration-300 group-hover:text-amber-700">
               Refik
             </span>
-            <span className="text-xs text-muted-foreground font-medium group-hover:text-accent transition-colors duration-300">
+            <span className="text-xs text-muted-foreground font-medium group-hover:text-blue-900 transition-colors duration-300">
               Keşif ve İnşa
             </span>
           </div>
