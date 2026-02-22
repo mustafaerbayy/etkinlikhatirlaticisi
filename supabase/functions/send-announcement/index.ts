@@ -1,6 +1,18 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+class Resend {
+  private apiKey: string;
+  constructor(apiKey: string) { this.apiKey = apiKey; }
+  async sendEmail(params: { from: string; to: string[]; subject: string; html: string }) {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return { data: await res.json() };
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

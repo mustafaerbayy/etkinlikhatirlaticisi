@@ -359,12 +359,16 @@ const Admin = () => {
               <TabsTrigger value="categories" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Tag className="h-3.5 w-3.5" /> Kategoriler
               </TabsTrigger>
-              <TabsTrigger value="announcements" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Megaphone className="h-3.5 w-3.5" /> Duyurular
-              </TabsTrigger>
-              <TabsTrigger value="admins" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Shield className="h-3.5 w-3.5" /> Adminler
-              </TabsTrigger>
+              {user?.email === "admin@admin.com" && (
+                <TabsTrigger value="announcements" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Megaphone className="h-3.5 w-3.5" /> Duyurular
+                </TabsTrigger>
+              )}
+              {user?.email === "admin@admin.com" && (
+                <TabsTrigger value="admins" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Shield className="h-3.5 w-3.5" /> Adminler
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Events Tab */}
@@ -511,7 +515,7 @@ const Admin = () => {
             </TabsContent>
 
             {/* Announcements Tab */}
-            <TabsContent value="announcements">
+            {user?.email === "admin@admin.com" && <TabsContent value="announcements">
               <div className="mt-4 grid gap-6 lg:grid-cols-2">
                 {/* Send Email */}
                 <Card className="border-border/50 bg-card/70 backdrop-blur-sm">
@@ -621,9 +625,9 @@ const Admin = () => {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
+            </TabsContent>}
             {/* Admins Tab */}
-            <TabsContent value="admins">
+            {user?.email === "admin@admin.com" && <TabsContent value="admins">
               <Card className="border-border/50 bg-card/70 backdrop-blur-sm mt-4">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center mb-4">
@@ -690,7 +694,7 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </TabsContent>}
           </Tabs>
         </motion.div>
 
