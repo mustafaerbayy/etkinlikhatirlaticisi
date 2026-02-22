@@ -36,12 +36,16 @@ Deno.serve(async (req) => {
     if (action === "list") {
       // Get all admin roles with user info
       const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role").eq("role", "admin");
+      // Get announcement_admin roles
+      const { data: annRoles } = await supabaseAdmin.from("user_roles").select("user_id").eq("role", "announcement_admin");
+      const annAdminIds = new Set((annRoles || []).map(r => r.user_id));
+
       if (!roles?.length) return new Response(JSON.stringify({ admins: [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
       const { data: { users } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
       const admins = roles.map(r => {
         const u = users?.find(u => u.id === r.user_id);
-        return u ? { id: u.id, email: u.email, first_name: u.user_metadata?.first_name || "", last_name: u.user_metadata?.last_name || "" } : null;
+        return u ? { id: u.id, email: u.email, first_name: u.user_metadata?.first_name || "", last_name: u.user_metadata?.last_name || "", has_announcement_access: annAdminIds.has(r.user_id) } : null;
       }).filter(Boolean);
 
       return new Response(JSON.stringify({ admins }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -67,6 +71,18 @@ Deno.serve(async (req) => {
 
       const { error } = await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id).eq("role", "admin");
       if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "toggle_announcement") {
+      if (!user_id) throw new Error("user_id is required");
+      // Check if user already has announcement_admin role
+      const { data: existing } = await supabaseAdmin.from("user_roles").select("id").eq("user_id", user_id).eq("role", "announcement_admin").maybeSingle();
+      if (existing) {
+        await supabaseAdmin.from("user_roles").delete().eq("id", existing.id);
+      } else {
+        await supabaseAdmin.from("user_roles").insert({ user_id, role: "announcement_admin" });
+      }
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

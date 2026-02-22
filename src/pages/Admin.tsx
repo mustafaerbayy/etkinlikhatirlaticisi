@@ -26,7 +26,7 @@ interface Event {
   cities: { name: string } | null; venues: { name: string } | null; categories: { name: string } | null;
 }
 interface Profile { id: string; first_name: string; last_name: string; email?: string }
-interface AdminUser { id: string; email: string; first_name: string; last_name: string }
+interface AdminUser { id: string; email: string; first_name: string; last_name: string; has_announcement_access?: boolean }
 interface Announcement {
   id: string; subject: string; body: string; recipient_count: number; created_at: string;
   announcement_recipients?: { status: string }[];
@@ -34,6 +34,7 @@ interface Announcement {
 
 const Admin = () => {
   const { user, isAdmin, loading } = useAuth();
+  const [hasAnnouncementAccess, setHasAnnouncementAccess] = useState(false);
   const navigate = useNavigate();
   const [cities, setCities] = useState<City[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -107,7 +108,12 @@ const Admin = () => {
         console.error("Failed to fetch admins:", error);
         return;
       }
-      if (data?.admins) setAdmins(data.admins);
+      if (data?.admins) {
+        setAdmins(data.admins);
+        // Check if current user has announcement access
+        const currentAdmin = data.admins.find((a: AdminUser) => a.id === user?.id);
+        if (currentAdmin) setHasAnnouncementAccess(!!currentAdmin.has_announcement_access);
+      }
     } catch (err) {
       console.error("Failed to fetch admins:", err);
     }
@@ -157,6 +163,19 @@ const Admin = () => {
       fetchAdmins();
     } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
     finally { setAdminLoading(false); }
+  };
+
+  const handleToggleAnnouncement = async (userId: string) => {
+    setAdminLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "toggle_announcement", user_id: userId } });
+      if (error) { const msg = await parseEdgeFnError(error); toast.error(msg); return; }
+      if (data?.error) { toast.error(data.error); return; }
+      toast.success("Duyuru yetkisi güncellendi.");
+      fetchAdmins();
+    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    finally { setAdminLoading(false); }
+  };
   };
 
   useEffect(() => { if (isAdmin) { fetchAll(); fetchAdmins(); } }, [isAdmin]);
@@ -359,7 +378,7 @@ const Admin = () => {
               <TabsTrigger value="categories" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Tag className="h-3.5 w-3.5" /> Kategoriler
               </TabsTrigger>
-              {user?.email === "admin@admin.com" && (
+              {(user?.email === "admin@admin.com" || hasAnnouncementAccess) && (
                 <TabsTrigger value="announcements" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <Megaphone className="h-3.5 w-3.5" /> Duyurular
                 </TabsTrigger>
@@ -515,7 +534,7 @@ const Admin = () => {
             </TabsContent>
 
             {/* Announcements Tab */}
-            {user?.email === "admin@admin.com" && <TabsContent value="announcements">
+            {(user?.email === "admin@admin.com" || hasAnnouncementAccess) && <TabsContent value="announcements">
               <div className="mt-4 grid gap-6 lg:grid-cols-2">
                 {/* Send Email */}
                 <Card className="border-border/50 bg-card/70 backdrop-blur-sm">
@@ -653,6 +672,7 @@ const Admin = () => {
                         <TableRow className="bg-muted/30 hover:bg-muted/30">
                           <TableHead className="font-semibold">Ad Soyad</TableHead>
                           <TableHead className="font-semibold">E-posta</TableHead>
+                          <TableHead className="font-semibold text-center">Duyuru Yetkisi</TableHead>
                           <TableHead className="text-right font-semibold">İşlem</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -668,6 +688,22 @@ const Admin = () => {
                               </div>
                             </TableCell>
                             <TableCell className="text-muted-foreground">{a.email}</TableCell>
+                            <TableCell className="text-center">
+                              {a.email !== "admin@admin.com" ? (
+                                <Button
+                                  variant={a.has_announcement_access ? "default" : "outline"}
+                                  size="sm"
+                                  className="gap-1.5 text-xs"
+                                  onClick={() => handleToggleAnnouncement(a.id)}
+                                  disabled={adminLoading}
+                                >
+                                  <Megaphone className="h-3 w-3" />
+                                  {a.has_announcement_access ? "Aktif" : "Pasif"}
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Her zaman</span>
+                              )}
+                            </TableCell>
                             <TableCell className="text-right">
                               <Button
                                 variant="ghost"
@@ -684,7 +720,7 @@ const Admin = () => {
                         ))}
                         {admins.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                               Henüz admin bulunmuyor
                             </TableCell>
                           </TableRow>
