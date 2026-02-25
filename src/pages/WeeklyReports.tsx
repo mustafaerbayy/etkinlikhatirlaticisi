@@ -338,7 +338,7 @@ const WeeklyReports = () => {
               <Textarea rows={6} value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} placeholder="Rapor içeriğini yazın..." />
             </div>
             <div className="space-y-2">
-              <Label>Dosya Yükle (PDF/Word, opsiyonel)</Label>
+              <Label>Dosya Yükle (PDF/Word)</Label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
