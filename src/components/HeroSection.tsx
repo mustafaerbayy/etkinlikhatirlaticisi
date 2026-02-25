@@ -307,7 +307,8 @@ const HeroSection = () => {
           </motion.div>
         </div>
 
-        <motion.p
+        {/* Abone ol özelliği geçici olarak gizlendi */}
+        {/* <motion.p
           className="mx-auto mt-6 max-w-xl text-lg text-amber-100/90 leading-relaxed md:text-sm drop-shadow-lg"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -333,6 +334,28 @@ const HeroSection = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity" />
             </Button>
           </motion.div>
+          
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-2 border-yellow-400/60 bg-amber-900/30 text-amber-200 hover:bg-amber-900/50 px-8 py-6 text-base backdrop-blur-md rounded-xl transition-all duration-300 hover:-translate-y-1 font-semibold hover:border-yellow-300/100"
+              onClick={() => {
+                document.querySelector('#events-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}>
+              Etkinlikleri Keşfet
+            </Button>
+          </motion.div>
+        </motion.div> */}
+
+        <motion.div
+          className="mt-10 flex items-center justify-center gap-4 flex-wrap"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}>
           
           <motion.div
             whileHover={{ scale: 1.05 }}
