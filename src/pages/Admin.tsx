@@ -27,7 +27,7 @@ interface Event {
   cities: { name: string } | null; categories: { name: string } | null;
 }
 interface Profile { id: string; first_name: string; last_name: string; email?: string }
-interface AdminUser { id: string; email: string; first_name: string; last_name: string; has_announcement_access?: boolean }
+interface AdminUser { id: string; email: string; first_name: string; last_name: string; has_announcement_access?: boolean; has_report_access?: boolean }
 interface ManagedUser { id: string; email: string; first_name: string; last_name: string; created_at: string; has_report_role?: boolean }
 interface Announcement {
   id: string; subject: string; body: string; recipient_count: number; created_at: string;
@@ -172,6 +172,18 @@ const Admin = () => {
       if (error) { toast.error(getErrorMessage(error)); return; }
       if (data?.error) { toast.error(data.error); return; }
       toast.success("Duyuru yetkisi güncellendi.");
+      fetchAdmins();
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
+    finally { setAdminLoading(false); }
+  };
+
+  const handleToggleReportAdmin = async (userId: string) => {
+    setAdminLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "toggle_report", user_id: userId } });
+      if (error) { toast.error(getErrorMessage(error)); return; }
+      if (data?.error) { toast.error(data.error); return; }
+      toast.success("Rapor yetkisi güncellendi.");
       fetchAdmins();
     } catch (err: any) { toast.error(getErrorMessage(err)); }
     finally { setAdminLoading(false); }
@@ -923,6 +935,7 @@ const Admin = () => {
                           <TableHead className="font-semibold">Ad Soyad</TableHead>
                           <TableHead className="font-semibold">E-posta</TableHead>
                           <TableHead className="font-semibold text-center">Duyuru Yetkisi</TableHead>
+                          <TableHead className="font-semibold text-center">Rapor Yetkisi</TableHead>
                           <TableHead className="text-right font-semibold">İşlem</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -954,6 +967,22 @@ const Admin = () => {
                                 <span className="text-xs text-muted-foreground">Her zaman</span>
                               )}
                             </TableCell>
+                            <TableCell className="text-center">
+                              {a.email !== "admin@admin.com" ? (
+                                <Button
+                                  variant={a.has_report_access ? "default" : "outline"}
+                                  size="sm"
+                                  className="gap-1.5 text-xs"
+                                  onClick={() => handleToggleReportAdmin(a.id)}
+                                  disabled={adminLoading}
+                                >
+                                  <FileText className="h-3 w-3" />
+                                  {a.has_report_access ? "Aktif" : "Pasif"}
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Her zaman</span>
+                              )}
+                            </TableCell>
                             <TableCell className="text-right">
                               <Button
                                 variant="ghost"
@@ -970,7 +999,7 @@ const Admin = () => {
                         ))}
                         {admins.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                            <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                               Henüz admin bulunmuyor
                             </TableCell>
                           </TableRow>
