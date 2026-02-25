@@ -33,9 +33,34 @@ Deno.serve(async (req) => {
 
     const { action, user_id, email, password, first_name, last_name } = await req.json();
 
+    if (action === "toggle_report_role") {
+      if (!user_id) throw new Error("user_id is required");
+      // Check if user already has report_admin role
+      const { data: hasRole } = await supabaseAdmin.rpc("has_role", { _user_id: user_id, _role: "report_admin" });
+      if (hasRole) {
+        // Remove role
+        const { error } = await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id).eq("role", "report_admin");
+        if (error) throw error;
+        return new Response(JSON.stringify({ success: true, has_report_role: false }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } else {
+        // Add role
+        const { error } = await supabaseAdmin.from("user_roles").insert({ user_id, role: "report_admin" });
+        if (error) throw error;
+        return new Response(JSON.stringify({ success: true, has_report_role: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     if (action === "list") {
       const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
       if (error) throw error;
+
+      // Get all report_admin roles
+      const { data: reportRoles } = await supabaseAdmin.from("user_roles").select("user_id").eq("role", "report_admin");
+      const reportAdminIds = new Set((reportRoles || []).map(r => r.user_id));
 
       const userList = (users || []).map(u => ({
         id: u.id,
@@ -43,6 +68,7 @@ Deno.serve(async (req) => {
         first_name: u.user_metadata?.first_name || "",
         last_name: u.user_metadata?.last_name || "",
         created_at: u.created_at,
+        has_report_role: reportAdminIds.has(u.id),
       }));
 
       return new Response(JSON.stringify({ users: userList }), {

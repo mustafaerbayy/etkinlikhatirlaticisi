@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, UserPlus, Eye, Archive } from "lucide-react";
+import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, UserPlus, Eye, Archive, FileText } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { getErrorMessage } from "@/lib/error-messages";
 
@@ -28,7 +28,7 @@ interface Event {
 }
 interface Profile { id: string; first_name: string; last_name: string; email?: string }
 interface AdminUser { id: string; email: string; first_name: string; last_name: string; has_announcement_access?: boolean }
-interface ManagedUser { id: string; email: string; first_name: string; last_name: string; created_at: string }
+interface ManagedUser { id: string; email: string; first_name: string; last_name: string; created_at: string; has_report_role?: boolean }
 interface Announcement {
   id: string; subject: string; body: string; recipient_count: number; created_at: string;
   announcement_recipients?: { status: string }[];
@@ -277,6 +277,18 @@ const Admin = () => {
       setEditUserData({ id: "", email: "", first_name: "", last_name: "", password: "" });
       fetchUsers();
       fetchAll();
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
+    finally { setUsersLoading(false); }
+  };
+
+  const handleToggleReportRole = async (userId: string) => {
+    setUsersLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users", { body: { action: "toggle_report_role", user_id: userId } });
+      if (error) { toast.error(getErrorMessage(error)); return; }
+      if (data?.error) { toast.error(data.error); return; }
+      toast.success("Rapor yetkisi güncellendi.");
+      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, has_report_role: data.has_report_role } : u));
     } catch (err: any) { toast.error(getErrorMessage(err)); }
     finally { setUsersLoading(false); }
   };
@@ -813,6 +825,7 @@ const Admin = () => {
                           <TableHead className="font-semibold">Ad Soyad</TableHead>
                           <TableHead className="font-semibold">E-posta</TableHead>
                           <TableHead className="font-semibold">Kayıt Tarihi</TableHead>
+                          <TableHead className="font-semibold text-center">Rapor Yetkisi</TableHead>
                           <TableHead className="text-right font-semibold">İşlem</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -830,6 +843,18 @@ const Admin = () => {
                             <TableCell className="text-muted-foreground">{u.email}</TableCell>
                             <TableCell className="text-muted-foreground text-sm">
                               {new Date(u.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                variant={u.has_report_role ? "default" : "outline"}
+                                size="sm"
+                                className="gap-1.5 text-xs"
+                                onClick={() => handleToggleReportRole(u.id)}
+                                disabled={usersLoading}
+                              >
+                                <FileText className="h-3 w-3" />
+                                {u.has_report_role ? "Aktif" : "Pasif"}
+                              </Button>
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-1">
@@ -859,7 +884,7 @@ const Admin = () => {
                         ))}
                         {allUsers.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                            <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                               {usersLoading ? "Yükleniyor..." : "Henüz kullanıcı bulunmuyor"}
                             </TableCell>
                           </TableRow>

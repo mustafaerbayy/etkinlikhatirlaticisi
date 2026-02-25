@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import EventDetail from "./pages/EventDetail";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import WeeklyReports from "./pages/WeeklyReports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/etkinlik/:id" element={<EventDetail />} />
             <Route path="/profil" element={<Profile />} />
             <Route path="/yonetim" element={<Admin />} />
+            <Route path="/haftalik-raporlar" element={<WeeklyReports />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
