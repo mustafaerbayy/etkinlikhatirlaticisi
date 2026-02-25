@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -26,15 +27,23 @@ interface WeeklyReport {
 
 const WeeklyReports = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [reports, setReports] = useState<WeeklyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [canReport, setCanReport] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<WeeklyReport | null>(null);
-  const [formData, setFormData] = useState({ title: "", week_start: "", week_end: "", content: "" });
+  const [formData, setFormData] = useState({ title: "", report_date: "", content: "" });
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedReport, setSelectedReport] = useState<WeeklyReport | null>(null);
+
+  // Require login
+  useEffect(() => {
+    if (!user && !loading) {
+      navigate("/giris");
+    }
+  }, [user, loading, navigate]);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -71,16 +80,9 @@ const WeeklyReports = () => {
 
   const openCreateDialog = () => {
     setEditingReport(null);
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
     setFormData({
       title: "",
-      week_start: monday.toISOString().split("T")[0],
-      week_end: sunday.toISOString().split("T")[0],
+      report_date: new Date().toISOString().split("T")[0],
       content: "",
     });
     setFile(null);
@@ -91,8 +93,7 @@ const WeeklyReports = () => {
     setEditingReport(report);
     setFormData({
       title: report.title,
-      week_start: report.week_start,
-      week_end: report.week_end,
+      report_date: report.week_start,
       content: report.content || "",
     });
     setFile(null);
@@ -101,7 +102,7 @@ const WeeklyReports = () => {
 
   const handleSave = async () => {
     if (!formData.title.trim()) { toast.error("Başlık gereklidir."); return; }
-    if (!formData.week_start || !formData.week_end) { toast.error("Hafta aralığı gereklidir."); return; }
+    if (!formData.report_date) { toast.error("Rapor tarihi gereklidir."); return; }
     if (!formData.content.trim() && !file && !editingReport?.file_url) {
       toast.error("İçerik veya dosya eklemelisiniz."); return;
     }
@@ -127,8 +128,8 @@ const WeeklyReports = () => {
 
       const record = {
         title: formData.title.trim(),
-        week_start: formData.week_start,
-        week_end: formData.week_end,
+        week_start: formData.report_date,
+        week_end: formData.report_date,
         content: formData.content.trim() || null,
         file_url: fileUrl,
         file_type: fileType,
@@ -174,11 +175,6 @@ const WeeklyReports = () => {
     }
   };
 
-  const formatDateRange = (start: string, end: string) => {
-    const s = new Date(start);
-    const e = new Date(end);
-    return `${s.toLocaleDateString("tr-TR", { day: "numeric", month: "short" })} - ${e.toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}`;
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -241,7 +237,7 @@ const WeeklyReports = () => {
                       <h3 className="font-display font-semibold text-foreground text-sm">{r.title}</h3>
                       <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        {formatDateRange(r.week_start, r.week_end)}
+                        {new Date(r.week_start).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
                       </div>
                       <div className="flex items-center gap-2 mt-2">
                         {r.content && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Metin</span>}
@@ -263,7 +259,7 @@ const WeeklyReports = () => {
                         <CardTitle className="font-display text-xl">{selectedReport.title}</CardTitle>
                         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
                           <Calendar className="h-3.5 w-3.5" />
-                          {formatDateRange(selectedReport.week_start, selectedReport.week_end)}
+                          {new Date(selectedReport.week_start).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
                         </p>
                       </div>
                       <div className="flex gap-1">
@@ -323,15 +319,9 @@ const WeeklyReports = () => {
               <Label>Başlık</Label>
               <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Haftalık rapor başlığı..." />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Hafta Başlangıcı</Label>
-                <Input type="date" value={formData.week_start} onChange={(e) => setFormData({ ...formData, week_start: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Hafta Bitişi</Label>
-                <Input type="date" value={formData.week_end} onChange={(e) => setFormData({ ...formData, week_end: e.target.value })} />
-              </div>
+            <div className="space-y-2">
+              <Label>Rapor Tarihi</Label>
+              <Input type="date" value={formData.report_date} onChange={(e) => setFormData({ ...formData, report_date: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label>İçerik (opsiyonel)</Label>
