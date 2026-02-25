@@ -367,10 +367,14 @@ const Admin = () => {
     }
   };
 
-  const handleArchiveAnnouncement = async (announcementId: string) => {
+  const handleDeleteAnnouncement = async (announcementId: string) => {
     if (!confirm("Bu duyuruyu silmek istediğinizden emin misiniz?")) return;
     setAnnouncementLoading(true);
     try {
+      // Önce ilişkili alıcı kayıtlarını sil
+      const { error: recipientError } = await supabase.from("announcement_recipients").delete().eq("announcement_id", announcementId);
+      if (recipientError) { toast.error("Alıcı kayıtları silinemedi: " + recipientError.message); return; }
+      // Sonra duyuruyu sil
       const { error } = await supabase.from("announcements").delete().eq("id", announcementId);
       if (error) { toast.error("Silme başarısız: " + error.message); return; }
       toast.success("Duyuru silindi.");
@@ -776,17 +780,8 @@ const Admin = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-7 gap-1.5 text-xs hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
-                                  onClick={() => handleArchiveAnnouncement(a.id)}
-                                  disabled={announcementLoading}
-                                >
-                                  <Archive className="h-3 w-3" /> Arşive Al
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
                                   className="h-7 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => handleToggleAnnouncement(a.id)}
+                                  onClick={() => handleDeleteAnnouncement(a.id)}
                                   disabled={announcementLoading}
                                 >
                                   <Trash2 className="h-3 w-3" /> Sil
