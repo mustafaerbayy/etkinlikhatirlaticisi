@@ -328,6 +328,42 @@ export type Database = {
           },
         ]
       }
+      weekly_reports: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string
+          file_type: string | null
+          file_url: string | null
+          id: string
+          title: string
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by: string
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          title: string
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          title?: string
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -342,7 +378,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user" | "announcement_admin"
+      app_role: "admin" | "user" | "announcement_admin" | "report_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -470,7 +506,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user", "announcement_admin"],
+      app_role: ["admin", "user", "announcement_admin", "report_admin"],
     },
   },
 } as const

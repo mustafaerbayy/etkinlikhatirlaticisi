@@ -41,6 +41,7 @@ const Navbar = ({ onAboutClick }: NavbarProps) => {
         {/* Desktop */}
         <div className="hidden items-center gap-1 md:flex">
           <NavItem to="/" label="Etkinlikler" />
+          <NavItem to="/haftalik-raporlar" label="Haftalık Raporlar" />
           <button className="relative px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-lg hover:bg-gradient-to-r hover:from-primary/5 hover:to-accent/5 group" onClick={onAboutClick}>
             Hakkımızda
             <span className="absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-primary to-accent scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
@@ -82,6 +83,7 @@ const Navbar = ({ onAboutClick }: NavbarProps) => {
         <div className="border-t border-border/50 bg-card/80 backdrop-blur-sm px-4 py-4 md:hidden animate-fade-in">
           <div className="flex flex-col gap-1">
             <MobileNavItem to="/" label="Etkinlikler" onClick={() => setMobileOpen(false)} />
+            <MobileNavItem to="/haftalik-raporlar" label="Haftalık Raporlar" onClick={() => setMobileOpen(false)} />
             <button className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-accent/5 transition-all text-left" onClick={() => { onAboutClick?.(); setMobileOpen(false); }}>Hakkımızda</button>
             {user && <MobileNavItem to="/profil" label="Hatırlatıcılar" onClick={() => setMobileOpen(false)} />}
             {isAdmin && <MobileNavItem to="/yonetim" label="Yönetim" onClick={() => setMobileOpen(false)} />}
