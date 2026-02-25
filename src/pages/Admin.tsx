@@ -181,9 +181,20 @@ const Admin = () => {
     setUsersLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("manage-users", { body: { action: "list" } });
-      if (error) { console.error("Failed to fetch users:", error); return; }
-      if (data?.users) setAllUsers(data.users);
-    } catch (err) { console.error("Failed to fetch users:", err); }
+      if (error) { 
+        console.error("Failed to fetch users:", error); 
+        setAllUsers([]); // Error durumunda state'i temizle
+        return; 
+      }
+      if (data?.users) {
+        setAllUsers(data.users);
+      } else {
+        setAllUsers([]);
+      }
+    } catch (err) { 
+      console.error("Failed to fetch users:", err); 
+      setAllUsers([]); // Exception durumunda da state'i temizle
+    }
     finally { setUsersLoading(false); }
   };
 
@@ -195,6 +206,10 @@ const Admin = () => {
       if (error) { toast.error(getErrorMessage(error)); return; }
       if (data?.error) { toast.error(data.error); return; }
       toast.success("Kullanıcı silindi.");
+      
+      // Silinen kullanıcıyı state'den hemen kaldır (UI güncelles)
+      setAllUsers(prev => prev.filter(u => u.id !== userId));
+      
       fetchUsers();
       fetchAll();
     } catch (err: any) { toast.error(getErrorMessage(err)); }
@@ -266,7 +281,13 @@ const Admin = () => {
     finally { setUsersLoading(false); }
   };
 
-  useEffect(() => { if (isAdmin) { fetchAll(); fetchAdmins(); fetchUsers(); } }, [isAdmin]);
+  useEffect(() => { 
+    if (isAdmin && user) { 
+      fetchAll(); 
+      fetchAdmins(); 
+      fetchUsers(); 
+    } 
+  }, [isAdmin, user?.id]);
 
   const openDialog = (type: typeof dialogType, item?: any) => {
     setDialogType(type);
