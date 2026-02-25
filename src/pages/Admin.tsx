@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, UserPlus, Eye } from "lucide-react";
+import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, UserPlus, Eye, Archive } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { getErrorMessage } from "@/lib/error-messages";
 
@@ -23,8 +23,8 @@ interface Category { id: string; name: string }
 interface Venue { id: string; name: string; city_id: string }
 interface Event {
   id: string; title: string; description: string; date: string; time: string;
-  city_id: string; venue_id: string; category_id: string;
-  cities: { name: string } | null; venues: { name: string } | null; categories: { name: string } | null;
+  city_id: string; venue_name: string; category_id: string;
+  cities: { name: string } | null; categories: { name: string } | null;
 }
 interface Profile { id: string; first_name: string; last_name: string; email?: string }
 interface AdminUser { id: string; email: string; first_name: string; last_name: string; has_announcement_access?: boolean }
@@ -48,8 +48,6 @@ const Admin = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<"city" | "category" | "venue" | "event">("city");
   const [formData, setFormData] = useState<any>({});
-  const [useCustomVenue, setUseCustomVenue] = useState(false);
-  const [customVenueName, setCustomVenueName] = useState("");
 
   // Announcement state
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -59,6 +57,8 @@ const Admin = () => {
   const [sending, setSending] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [activeTab, setActiveTab] = useState("events");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [announcementLoading, setAnnouncementLoading] = useState(false);
 
   // Admin management state
   const [admins, setAdmins] = useState<AdminUser[]>([]);
@@ -86,7 +86,7 @@ const Admin = () => {
       supabase.from("cities").select("*").order("name"),
       supabase.from("categories").select("*").order("name"),
       supabase.from("venues").select("*").order("name"),
-      supabase.from("events").select("*, cities(name), venues(name), categories(name)").order("date", { ascending: false }),
+      supabase.from("events").select("*, cities(name), categories(name)").order("date", { ascending: false }),
       supabase.from("profiles").select("id, first_name, last_name, reminder_2h, reminder_1d, reminder_2d, reminder_3d, reminder_1w"),
       supabase.from("reminder_logs").select("status"),
       supabase.from("announcements").select("*, announcement_recipients(status)").order("created_at", { ascending: false }),
@@ -292,45 +292,28 @@ const Admin = () => {
   const openDialog = (type: typeof dialogType, item?: any) => {
     setDialogType(type);
     setEditingItem(item || null);
-    setUseCustomVenue(false);
-    setCustomVenueName("");
     if (type === "city") setFormData({ name: item?.name || "" });
     else if (type === "category") setFormData({ name: item?.name || "" });
     else if (type === "venue") setFormData({ name: item?.name || "", city_id: item?.city_id || "" });
     else if (type === "event") setFormData({
       title: item?.title || "", description: item?.description || "", date: item?.date || "",
-      time: item?.time || "", city_id: item?.city_id || "", venue_id: item?.venue_id || "", category_id: item?.category_id || "",
+      time: item?.time || "", city_id: item?.city_id || "", venue_name: item?.venue_name || "", category_id: item?.category_id || "",
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (dialogType === "venue" && !formData.city_id) { toast.error("Lütfen bir şehir seçin."); return; }
+    let dataToSave = { ...formData };
+    
     if (dialogType === "event") {
       if (!formData.title || !formData.date || !formData.time || !formData.category_id) { toast.error("Lütfen başlık, tarih, saat ve kategori alanlarını doldurun."); return; }
+      // Mekan bilgisi venue_name'e kaydedilecek
+      if (!formData.venue_name?.trim()) { toast.error("Lütfen mekan adını girin."); return; }
+      dataToSave.venue_id = null; // Artık venue_id kullanmayacağız
     }
+    
     if ((dialogType === "city" || dialogType === "category") && !formData.name?.trim()) { toast.error("Lütfen bir ad girin."); return; }
-    
-    let dataToSave = { ...formData };
-    let createdVenueId: string | null = null;
-    
-    if (dialogType === "event" && useCustomVenue && customVenueName.trim()) {
-      const { data: newVenue, error: venueError } = await supabase
-        .from("venues")
-        .insert({ name: customVenueName.trim(), city_id: formData.city_id })
-        .select()
-        .single();
-      
-      if (venueError) {
-        toast.error("Mekan oluşturulamadı: " + venueError.message);
-        return;
-      }
-      
-      createdVenueId = newVenue.id;
-      dataToSave.venue_id = createdVenueId;
-    }
-    
-    if (dialogType === "event") { if (!dataToSave.city_id) dataToSave.city_id = null; if (!dataToSave.venue_id) dataToSave.venue_id = null; }
+    if (dialogType === "venue" && !formData.city_id) { toast.error("Lütfen bir şehir seçin."); return; }
     const doSave = async (table: "cities" | "categories" | "venues" | "events") => {
       if (editingItem) return supabase.from(table).update(dataToSave).eq("id", editingItem.id);
       else return supabase.from(table).insert(dataToSave);
@@ -491,9 +474,6 @@ const Admin = () => {
               <TabsTrigger value="cities" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <MapPin className="h-3.5 w-3.5" /> Şehirler
               </TabsTrigger>
-              <TabsTrigger value="venues" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Building className="h-3.5 w-3.5" /> Mekanlar
-              </TabsTrigger>
               <TabsTrigger value="categories" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Tag className="h-3.5 w-3.5" /> Kategoriler
               </TabsTrigger>
@@ -632,37 +612,6 @@ const Admin = () => {
               </Card>
             </TabsContent>
 
-            {/* Venues Tab */}
-            <TabsContent value="venues">
-              <Card className="border-border/50 bg-card/70 backdrop-blur-sm mt-4">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-muted-foreground">{venues.length} mekan</p>
-                    <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => openDialog("venue")}><Plus className="h-4 w-4" /> Yeni Mekan</Button>
-                  </div>
-                  <div className="rounded-xl border border-border/50 overflow-hidden">
-                    <Table>
-                      <TableHeader><TableRow className="bg-muted/30 hover:bg-muted/30"><TableHead className="font-semibold">Ad</TableHead><TableHead className="font-semibold">Şehir</TableHead><TableHead className="text-right font-semibold">İşlem</TableHead></TableRow></TableHeader>
-                      <TableBody>
-                        {venues.map((v) => (
-                          <TableRow key={v.id} className="hover:bg-muted/20">
-                            <TableCell className="font-medium">{v.name}</TableCell>
-                            <TableCell><span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">{cities.find(c => c.id === v.city_id)?.name}</span></TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openDialog("venue", v)}><Pencil className="h-3.5 w-3.5" /></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete("venues", v.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
             {/* Categories Tab */}
             <TabsContent value="categories">
               <Card className="border-border/50 bg-card/70 backdrop-blur-sm mt-4">
@@ -721,8 +670,21 @@ const Admin = () => {
                           {selectedUsers.length === profiles.length ? "Tümünü Kaldır" : "Tümünü Seç"}
                         </Button>
                       </div>
+                      
+                      {/* Search Input */}
+                      <Input 
+                        placeholder="Kullanıcı adı veya soyadı ile ara..." 
+                        value={searchQuery} 
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="text-sm"
+                      />
+                      
                       <div className="max-h-48 overflow-y-auto rounded-xl border border-border/50 divide-y divide-border/30">
-                        {profiles.map((p) => (
+                        {profiles
+                          .filter(p => 
+                            `${p.first_name} ${p.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+                          )
+                          .map((p) => (
                           <label
                             key={p.id}
                             className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/30 cursor-pointer transition-colors"
@@ -741,8 +703,10 @@ const Admin = () => {
                             </div>
                           </label>
                         ))}
-                        {profiles.length === 0 && (
-                          <p className="text-sm text-muted-foreground text-center py-4">Henüz kayıtlı kullanıcı yok</p>
+                        {profiles.filter(p => `${p.first_name} ${p.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            {searchQuery.trim() ? "Eşleşen kullanıcı bulunamadı" : "Henüz kayıtlı kullanıcı yok"}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -781,7 +745,7 @@ const Admin = () => {
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.body}</p>
-                              <div className="flex items-center gap-3 mt-2.5">
+                      <div className="flex items-center gap-3 mt-2.5">
                                 <span className="inline-flex items-center gap-1 text-xs text-primary">
                                   <Users className="h-3 w-3" /> {a.recipient_count} alıcı
                                 </span>
@@ -795,6 +759,26 @@ const Admin = () => {
                                     <XCircle className="h-3 w-3" /> {failedCount} başarısız
                                   </span>
                                 )}
+                              </div>
+                              <div className="flex justify-end gap-1.5 mt-2.5 pt-2.5 border-t border-border/30">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 gap-1.5 text-xs hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
+                                  onClick={() => handleArchiveAnnouncement(a.id)}
+                                  disabled={announcementLoading}
+                                >
+                                  <Archive className="h-3 w-3" /> Arşive Al
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => handleDeleteAnnouncement(a.id)}
+                                  disabled={announcementLoading}
+                                >
+                                  <Trash2 className="h-3 w-3" /> Sil
+                                </Button>
                               </div>
                             </div>
                           );
@@ -1012,24 +996,7 @@ const Admin = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Mekan</Label>
-                    {!useCustomVenue ? (
-                      <div className="space-y-2">
-                        <Select value={formData.venue_id || ""} onValueChange={(v) => setFormData({ ...formData, venue_id: v })}>
-                          <SelectTrigger><SelectValue placeholder="Mekan seçin" /></SelectTrigger>
-                          <SelectContent>{venues.filter(v => !formData.city_id || v.city_id === formData.city_id).map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
-                        </Select>
-                        <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={() => { setUseCustomVenue(true); setFormData({ ...formData, venue_id: "" }); }}>
-                          + Yeni Mekan Ekle
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Input placeholder="Mekan adını girin" value={customVenueName} onChange={(e) => setCustomVenueName(e.target.value)} />
-                        <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={() => { setUseCustomVenue(false); setCustomVenueName(""); }}>
-                          Mevcut Mekanlardan Seç
-                        </Button>
-                      </div>
-                    )}
+                    <Input placeholder="Mekan adını girin" value={formData.venue_name || ""} onChange={(e) => setFormData({ ...formData, venue_name: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label>Kategori</Label>
