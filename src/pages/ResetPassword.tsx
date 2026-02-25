@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { CheckCircle2 } from "lucide-react";
+import { getErrorMessage } from "@/lib/error-messages";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ const ResetPassword = () => {
       toast.success("Şifreniz başarıyla güncellendi!");
       setTimeout(() => navigate("/giris"), 3000);
     } catch (err: any) {
-      toast.error("Şifre güncellenemedi: " + err.message);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { getErrorMessage } from "@/lib/error-messages";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const Register = () => {
     });
     setLoading(false);
     if (error) {
-      toast.error("Kayıt başarısız: " + error.message);
+      toast.error(getErrorMessage(error));
     } else {
       toast.success("Kayıt başarılı! E-postanızı doğrulayın.");
       navigate("/giris");

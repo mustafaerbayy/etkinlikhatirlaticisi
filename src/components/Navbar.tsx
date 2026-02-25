@@ -67,9 +67,6 @@ const Navbar = ({ onAboutClick }: NavbarProps) => {
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 rounded-lg" onClick={() => navigate("/giris")}>
                 Giriş Yap
               </Button>
-              <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 text-primary-foreground font-medium rounded-lg transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/kayit")}>
-                Abone Ol
-              </Button>
             </div>
           )}
         </div>
@@ -97,14 +94,9 @@ const Navbar = ({ onAboutClick }: NavbarProps) => {
                 <LogOut className="h-4 w-4" /> Çıkış Yap
               </button>
             ) : (
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" className="flex-1" onClick={() => { navigate("/giris"); setMobileOpen(false); }}>
-                  Giriş Yap
-                </Button>
-                <Button size="sm" className="flex-1 bg-gradient-to-r from-primary to-accent" onClick={() => { navigate("/kayit"); setMobileOpen(false); }}>
-                  Abone Ol
-                </Button>
-              </div>
+              <Button variant="ghost" size="sm" className="w-full" onClick={() => { navigate("/giris"); setMobileOpen(false); }}>
+                Giriş Yap
+              </Button>
             )}
           </div>
         </div>

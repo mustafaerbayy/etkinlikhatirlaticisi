@@ -83,6 +83,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "update") {
+      if (!user_id) throw new Error("user_id is required");
+
+      const updateData: any = {};
+      
+      // Update email if provided and different
+      if (email && email.trim()) {
+        updateData.email = email.trim();
+      }
+
+      // Update user metadata (first_name, last_name)
+      if (first_name !== undefined || last_name !== undefined) {
+        updateData.user_metadata = {};
+        if (first_name !== undefined) updateData.user_metadata.first_name = first_name.trim();
+        if (last_name !== undefined) updateData.user_metadata.last_name = last_name.trim();
+      }
+
+      // Update password if provided
+      if (password && password.trim()) {
+        if (password.length < 6) throw new Error("Şifre en az 6 karakter olmalıdır");
+        updateData.password = password;
+      }
+
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(user_id, updateData);
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     throw new Error("Invalid action");
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {

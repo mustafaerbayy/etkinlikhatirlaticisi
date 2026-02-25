@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Pencil, Trash2, Plus, Calendar, MapPin, Tag, Building, Shield, Mail, MailX, Users, Send, Megaphone, CheckCircle2, XCircle, Clock, UserPlus, Eye } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { getErrorMessage } from "@/lib/error-messages";
 
 interface City { id: string; name: string }
 interface Category { id: string; name: string }
@@ -57,6 +58,7 @@ const Admin = () => {
   const [emailBody, setEmailBody] = useState("");
   const [sending, setSending] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [activeTab, setActiveTab] = useState("events");
 
   // Admin management state
   const [admins, setAdmins] = useState<AdminUser[]>([]);
@@ -68,6 +70,10 @@ const Admin = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [newUserDialog, setNewUserDialog] = useState(false);
   const [newUserData, setNewUserData] = useState({ email: "", password: "", first_name: "", last_name: "" });
+  const [editUserDialog, setEditUserDialog] = useState(false);
+  const [editUserData, setEditUserData] = useState<{ id: string; email: string; first_name: string; last_name: string; password?: string }>({ id: "", email: "", first_name: "", last_name: "", password: "" });
+
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -126,32 +132,20 @@ const Admin = () => {
     }
   };
 
-  const parseEdgeFnError = async (error: any): Promise<string> => {
-    if (error?.context?.body) {
-      try {
-        const text = await error.context.text();
-        const parsed = JSON.parse(text);
-        return parsed.error || "Bilinmeyen hata";
-      } catch { /* ignore */ }
-    }
-    return error?.message || "Bilinmeyen hata";
-  };
-
   const handleAddAdmin = async () => {
     if (!newAdminEmail.trim()) { toast.error("Lütfen bir e-posta adresi girin."); return; }
     setAdminLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "add", email: newAdminEmail.trim() } });
       if (error) {
-        const msg = await parseEdgeFnError(error);
-        toast.error(msg);
+        toast.error(getErrorMessage(error));
         return;
       }
       if (data?.error) { toast.error(data.error); return; }
       toast.success("Admin eklendi.");
       setNewAdminEmail("");
       fetchAdmins();
-    } catch (err: any) { toast.error(err.message || "Admin eklenemedi."); }
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
     finally { setAdminLoading(false); }
   };
 
@@ -161,14 +155,13 @@ const Admin = () => {
     try {
       const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "remove", user_id: userId } });
       if (error) {
-        const msg = await parseEdgeFnError(error);
-        toast.error(msg);
+        toast.error(getErrorMessage(error));
         return;
       }
       if (data?.error) { toast.error(data.error); return; }
       toast.success("Admin yetkisi kaldırıldı.");
       fetchAdmins();
-    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
     finally { setAdminLoading(false); }
   };
 
@@ -176,11 +169,11 @@ const Admin = () => {
     setAdminLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("manage-admin", { body: { action: "toggle_announcement", user_id: userId } });
-      if (error) { const msg = await parseEdgeFnError(error); toast.error(msg); return; }
+      if (error) { toast.error(getErrorMessage(error)); return; }
       if (data?.error) { toast.error(data.error); return; }
       toast.success("Duyuru yetkisi güncellendi.");
       fetchAdmins();
-    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
     finally { setAdminLoading(false); }
   };
 
@@ -199,12 +192,12 @@ const Admin = () => {
     setUsersLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("manage-users", { body: { action: "delete", user_id: userId } });
-      if (error) { const msg = await parseEdgeFnError(error); toast.error(msg); return; }
+      if (error) { toast.error(getErrorMessage(error)); return; }
       if (data?.error) { toast.error(data.error); return; }
       toast.success("Kullanıcı silindi.");
       fetchUsers();
       fetchAll();
-    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
     finally { setUsersLoading(false); }
   };
 
@@ -216,14 +209,60 @@ const Admin = () => {
       const { data, error } = await supabase.functions.invoke("manage-users", {
         body: { action: "create", ...newUserData },
       });
-      if (error) { const msg = await parseEdgeFnError(error); toast.error(msg); return; }
+      if (error) { toast.error(getErrorMessage(error)); return; }
       if (data?.error) { toast.error(data.error); return; }
       toast.success("Kullanıcı oluşturuldu.");
       setNewUserDialog(false);
       setNewUserData({ email: "", password: "", first_name: "", last_name: "" });
       fetchUsers();
       fetchAll();
-    } catch (err: any) { toast.error(err.message || "İşlem başarısız."); }
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
+    finally { setUsersLoading(false); }
+  };
+
+  const handleEditUser = (user: ManagedUser) => {
+    setEditUserData({ 
+      id: user.id, 
+      email: user.email, 
+      first_name: user.first_name, 
+      last_name: user.last_name,
+      password: "" 
+    });
+    setEditUserDialog(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editUserData.email.trim()) { toast.error("E-posta gereklidir."); return; }
+    if (editUserData.password && editUserData.password.length < 6) { 
+      toast.error("Şifre en az 6 karakter olmalıdır."); 
+      return; 
+    }
+    setUsersLoading(true);
+    try {
+      const updatePayload: any = { 
+        action: "update", 
+        user_id: editUserData.id,
+        email: editUserData.email.trim(),
+        first_name: editUserData.first_name.trim(),
+        last_name: editUserData.last_name.trim()
+      };
+      
+      // Only include password if it's been entered
+      if (editUserData.password && editUserData.password.trim()) {
+        updatePayload.password = editUserData.password;
+      }
+
+      const { data, error } = await supabase.functions.invoke("manage-users", {
+        body: updatePayload,
+      });
+      if (error) { toast.error(getErrorMessage(error)); return; }
+      if (data?.error) { toast.error(data.error); return; }
+      toast.success("Kullanıcı bilgileri güncellendi.");
+      setEditUserDialog(false);
+      setEditUserData({ id: "", email: "", first_name: "", last_name: "", password: "" });
+      fetchUsers();
+      fetchAll();
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
     finally { setUsersLoading(false); }
   };
 
@@ -318,7 +357,7 @@ const Admin = () => {
       setSelectedUsers([]);
       fetchAll();
     } catch (err: any) {
-      toast.error("Gönderim başarısız: " + (err.message || "Bilinmeyen hata"));
+      toast.error(getErrorMessage(err));
     } finally {
       setSending(false);
     }
@@ -327,10 +366,15 @@ const Admin = () => {
   if (loading || !isAdmin) return null;
 
   const statCards = [
-    { icon: Calendar, label: "Toplam Etkinlik", value: stats.totalEvents, color: "text-primary", bg: "bg-primary/10" },
-    { icon: Users, label: "Aktif Kullanıcı", value: stats.totalUsers, color: "text-accent", bg: "bg-accent/10" },
-    { icon: Mail, label: "Gönderilen E-posta", value: stats.totalSent, color: "text-primary", bg: "bg-primary/10" },
-    { icon: MailX, label: "Başarısız E-posta", value: stats.totalFailed, color: "text-destructive", bg: "bg-destructive/10" },
+    { icon: Calendar, label: "Toplam Etkinlik", value: stats.totalEvents, color: "text-primary", bg: "bg-primary/10", clickable: false },
+    { icon: Users, label: "Aktif Kullanıcı", value: stats.totalUsers, color: "text-accent", bg: "bg-accent/10", clickable: user?.email === "admin@admin.com", onClick: () => {
+      setActiveTab("users");
+      setTimeout(() => {
+        tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } },
+    { icon: Mail, label: "Gönderilen E-posta", value: stats.totalSent, color: "text-primary", bg: "bg-primary/10", clickable: false },
+    { icon: MailX, label: "Başarısız E-posta", value: stats.totalFailed, color: "text-destructive", bg: "bg-destructive/10", clickable: false },
   ];
 
   const reminderBars = [
@@ -372,7 +416,12 @@ const Admin = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statCards.map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.4 }}>
-              <Card className="border-border/50 bg-card/70 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-shadow">
+              <Card 
+                className={`border-border/50 bg-card/70 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all ${
+                  s.clickable ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''
+                }`}
+                onClick={s.clickable ? s.onClick : undefined}
+              >
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4">
                     <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${s.bg} ${s.color} transition-colors`}>
@@ -412,8 +461,8 @@ const Admin = () => {
         </motion.div>
 
         {/* CRUD Tabs */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.4 }}>
-          <Tabs defaultValue="events" className="mt-8">
+        <motion.div ref={tabsRef} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.4 }}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
             <TabsList className="bg-card/70 border border-border/50 backdrop-blur-sm p-1 flex-wrap h-auto gap-1">
               <TabsTrigger value="events" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Calendar className="h-3.5 w-3.5" /> Etkinlikler
@@ -771,16 +820,28 @@ const Admin = () => {
                               {new Date(u.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => handleDeleteUser(u.id)}
-                                disabled={usersLoading || u.id === user?.id}
-                                title={u.id === user?.id ? "Kendinizi silemezsiniz" : "Kullanıcıyı sil"}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                                  onClick={() => handleEditUser(u)}
+                                  disabled={usersLoading}
+                                  title="Kullanıcı bilgilerini düzenle"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => handleDeleteUser(u.id)}
+                                  disabled={usersLoading || u.id === user?.id}
+                                  title={u.id === user?.id ? "Kendinizi silemezsiniz" : "Kullanıcıyı sil"}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -990,6 +1051,44 @@ const Admin = () => {
               </div>
               <Button onClick={handleCreateUser} className="w-full shadow-sm" disabled={usersLoading}>
                 {usersLoading ? "Oluşturuluyor..." : "Kullanıcı Oluştur"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit User Dialog */}
+        <Dialog open={editUserDialog} onOpenChange={setEditUserDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display text-xl">Kullanıcı Bilgilerini Düzenle</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Ad</Label>
+                  <Input value={editUserData.first_name} onChange={(e) => setEditUserData({ ...editUserData, first_name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Soyad</Label>
+                  <Input value={editUserData.last_name} onChange={(e) => setEditUserData({ ...editUserData, last_name: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>E-posta</Label>
+                <Input type="email" value={editUserData.email} onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Yeni Şifre</Label>
+                <Input 
+                  type="password" 
+                  placeholder="Boş bırakın eğer değiştirmiyorsanız" 
+                  value={editUserData.password || ""} 
+                  onChange={(e) => setEditUserData({ ...editUserData, password: e.target.value })} 
+                />
+                <p className="text-xs text-muted-foreground">Şifreyi değiştirmek istemiyorsanız boş bırakabilirsiniz</p>
+              </div>
+              <Button onClick={handleUpdateUser} className="w-full shadow-sm" disabled={usersLoading}>
+                {usersLoading ? "Güncelleniyor..." : "Bilgileri Güncelle"}
               </Button>
             </div>
           </DialogContent>

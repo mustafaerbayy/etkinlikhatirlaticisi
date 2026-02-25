@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { getErrorMessage } from "@/lib/error-messages";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
     setLoading(false);
     if (error) {
-      toast.error("Giriş başarısız: " + error.message);
+      toast.error(getErrorMessage(error));
     } else {
       toast.success("Hoş geldiniz!");
       navigate("/");

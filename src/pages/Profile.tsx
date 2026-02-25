@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Bell, Clock, CalendarDays, CalendarRange, CalendarClock, User, Save } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { getErrorMessage } from "@/lib/error-messages";
 
 const Profile = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
@@ -47,7 +48,7 @@ const Profile = () => {
       .eq("id", user.id);
     setSaving(false);
     if (error) {
-      toast.error("Kaydetme başarısız.");
+      toast.error(getErrorMessage(error));
     } else {
       toast.success("Hatırlatıcı tercihleri güncellendi.");
       refreshProfile();
