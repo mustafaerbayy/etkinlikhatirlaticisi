@@ -367,6 +367,18 @@ const Admin = () => {
     }
   };
 
+  const handleArchiveAnnouncement = async (announcementId: string) => {
+    if (!confirm("Bu duyuruyu silmek istediğinizden emin misiniz?")) return;
+    setAnnouncementLoading(true);
+    try {
+      const { error } = await supabase.from("announcements").delete().eq("id", announcementId);
+      if (error) { toast.error("Silme başarısız: " + error.message); return; }
+      toast.success("Duyuru silindi.");
+      fetchAll();
+    } catch (err: any) { toast.error(getErrorMessage(err)); }
+    finally { setAnnouncementLoading(false); }
+  };
+
   if (loading || !isAdmin) return null;
 
   const statCards = [
@@ -774,7 +786,7 @@ const Admin = () => {
                                   variant="ghost"
                                   size="sm"
                                   className="h-7 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => handleDeleteAnnouncement(a.id)}
+                                  onClick={() => handleToggleAnnouncement(a.id)}
                                   disabled={announcementLoading}
                                 >
                                   <Trash2 className="h-3 w-3" /> Sil

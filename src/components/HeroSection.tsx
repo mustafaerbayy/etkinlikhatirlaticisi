@@ -368,7 +368,7 @@ const HeroSection = () => {
               onClick={() => {
                 document.querySelector('#events-section')?.scrollIntoView({ behavior: 'smooth' });
               }}>
-              Etkinlikleri Keşfet
+              Etkinlikleri Gör
             </Button>
           </motion.div>
         </motion.div>
