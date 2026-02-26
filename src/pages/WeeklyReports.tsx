@@ -67,10 +67,21 @@ const WeeklyReports = () => {
 
   const checkPermission = async () => {
     if (!user) { setCanReport(false); return; }
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    if (isAdmin) { setCanReport(true); return; }
-    const { data: isReportAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "report_admin" as any });
-    setCanReport(!!isReportAdmin);
+    try {
+      const { data: isAdmin, error: adminError } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+      if (isAdmin && !adminError) { setCanReport(true); return; }
+      
+      const { data: isReportAdmin, error: reportError } = await supabase.rpc("has_role", { _user_id: user.id, _role: "report_admin" });
+      if (reportError) {
+        console.warn("Report admin check failed:", reportError);
+        setCanReport(false);
+      } else {
+        setCanReport(!!isReportAdmin);
+      }
+    } catch (err) {
+      console.error("Permission check failed:", err);
+      setCanReport(false);
+    }
   };
 
   useEffect(() => {
