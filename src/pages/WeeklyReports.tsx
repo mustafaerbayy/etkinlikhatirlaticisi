@@ -180,170 +180,385 @@ const WeeklyReports = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/90 via-primary/70 to-primary/50">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, hsl(var(--gold) / 0.4) 0%, transparent 50%)' }} />
-        <div className="container mx-auto px-4 py-12 relative z-10">
-          <motion.div className="flex items-center gap-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-foreground/20 backdrop-blur-sm border border-primary-foreground/10">
-              <FileText className="h-8 w-8 text-primary-foreground" />
+      {/* Reports Section - matching homepage style */}
+      <section className="relative py-20">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            className="absolute top-20 -left-40 w-80 h-80 bg-gradient-to-br from-primary/10 to-accent/5 rounded-full blur-3xl"
+            animate={{ y: [0, 50, 0] }}
+            transition={{ duration: 8, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute bottom-20 -right-40 w-80 h-80 bg-gradient-to-br from-accent/10 to-primary/5 rounded-full blur-3xl"
+            animate={{ y: [0, -50, 0] }}
+            transition={{ duration: 8, repeat: Infinity }}
+          />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center gap-4 mb-3">
+              <motion.div 
+                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 shadow-lg shadow-primary/20"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <FileText className="h-6 w-6 text-primary font-bold" />
+              </motion.div>
+              <h2 className="font-display text-4xl font-bold text-foreground md:text-5xl">
+                Haftalık Raporlar
+              </h2>
             </div>
-            <div>
-              <h1 className="font-display text-3xl font-bold text-primary-foreground md:text-4xl">Haftalık Raporlar</h1>
-              <p className="text-primary-foreground/75 mt-1">Son 3 aya ait haftalık raporlar</p>
-            </div>
+            <p className="text-muted-foreground mt-2 text-lg">Son 3 aya ait haftalık raporların tümü</p>
           </motion.div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 20C360 40 720 0 1080 20C1260 30 1380 10 1440 20V40H0V20Z" fill="hsl(var(--background))" />
-          </svg>
-        </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-10">
-        {canReport && (
-          <div className="flex justify-end mb-6">
-            <Button className="gap-2 shadow-sm" onClick={openCreateDialog}>
-              <Plus className="h-4 w-4" /> Yeni Rapor Oluştur
-            </Button>
-          </div>
-        )}
+          {canReport && (
+            <motion.div 
+              className="mt-8"
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <Button 
+                className="gap-2 shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold h-11 px-6 rounded-xl"
+                onClick={openCreateDialog}
+              >
+                <Plus className="h-5 w-5" /> 
+                Yeni Rapor Oluştur
+              </Button>
+            </motion.div>
+          )}
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : reports.length === 0 ? (
-          <Card className="border-border/50 bg-card/70 backdrop-blur-sm">
-            <CardContent className="py-16 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground/30 mx-auto" />
-              <p className="text-muted-foreground mt-4">Henüz rapor bulunmuyor</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Report List */}
-            <div className="lg:col-span-1 space-y-3">
-              {reports.map((r, i) => (
-                <motion.div key={r.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+          {loading ? (
+            <motion.div 
+              className="mt-20 flex flex-col items-center justify-center gap-4 py-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="h-10 w-10 text-primary" />
+              </motion.div>
+              <motion.p 
+                className="text-lg text-muted-foreground font-medium"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                Raporlar yükleniyor...
+              </motion.p>
+            </motion.div>
+          ) : reports.length === 0 ? (
+            <motion.div
+              className="mt-12 text-center py-20"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <motion.div 
+                className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-muted/50 to-muted/30 shadow-lg mb-6"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <FileText className="h-12 w-12 text-muted-foreground/40" />
+              </motion.div>
+              <p className="text-2xl font-display font-bold text-foreground">Rapor bulunamadı</p>
+              <p className="mt-2 text-muted-foreground text-lg">Raporlar burada görünecek.</p>
+            </motion.div>
+          ) : (
+            <motion.div 
+              className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ staggerChildren: 0.1 }}
+            >
+              {reports.map((report, i) => (
+                <motion.div 
+                  key={report.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  onClick={() => setSelectedReport(report)}
+                  className="cursor-pointer"
+                >
                   <Card
-                    className={`border-border/50 bg-card/70 backdrop-blur-sm cursor-pointer transition-all hover:shadow-md ${
-                      selectedReport?.id === r.id ? "ring-2 ring-primary shadow-lg" : ""
+                    className={`border-border/50 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-md shadow-lg transition-all hover:shadow-xl hover:border-primary/30 h-full group ${
+                      selectedReport?.id === report.id 
+                        ? "ring-2 ring-primary shadow-xl border-primary/50" 
+                        : "hover:border-accent/20 hover:-translate-y-1"
                     }`}
-                    onClick={() => setSelectedReport(r)}
                   >
-                    <CardContent className="p-4">
-                      <h3 className="font-display font-semibold text-foreground text-sm">{r.title}</h3>
-                      <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(r.week_start).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="rounded-lg bg-primary/10 p-2 group-hover:bg-primary/15 transition-colors flex-shrink-0">
+                          <FileText className="h-5 w-5 text-primary" />
+                        </div>
+                        {selectedReport?.id === report.id && (
+                          <motion.div
+                            className="h-2 w-2 bg-accent rounded-full flex-shrink-0 mt-1"
+                            layoutId="activeIndicator"
+                            transition={{ type: "spring", stiffness: 200, damping: 30 }}
+                          />
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        {r.content && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Metin</span>}
-                        {r.file_url && <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">{r.file_type?.toUpperCase()}</span>}
+                      <div>
+                        <CardTitle className="font-display text-lg text-foreground line-clamp-2 group-hover:text-primary transition-colors">{report.title}</CardTitle>
+                        <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {new Date(report.week_start).toLocaleDateString("tr-TR", { 
+                            day: "numeric", 
+                            month: "short",
+                            year: "numeric"
+                          })}
+                        </p>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {report.content && (
+                          <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-medium">Metin</span>
+                        )}
+                        {report.file_url && (
+                          <span className="text-xs bg-accent/15 text-accent px-2.5 py-1 rounded-full font-medium">{report.file_type?.toUpperCase() || "DOSYA"}</span>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
+          )}
+        </div>
+      </section>
 
-            {/* Report Detail */}
-            <div className="lg:col-span-2">
-              {selectedReport ? (
-                <Card className="border-border/50 bg-card/70 backdrop-blur-sm sticky top-24">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="font-display text-xl">{selectedReport.title}</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5" />
-                          {new Date(selectedReport.week_start).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
-                        {selectedReport.file_url && (
-                          <Button variant="outline" size="sm" className="gap-1.5" asChild>
-                            <a href={selectedReport.file_url} target="_blank" rel="noopener noreferrer" download>
-                              <Download className="h-3.5 w-3.5" /> İndir
-                            </a>
-                          </Button>
-                        )}
-                        {canReport && (
-                          <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openEditDialog(selectedReport)}>
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete(selectedReport)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
+      {/* Report Detail Modal/Drawer */}
+      {selectedReport && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setSelectedReport(null)}
+        />
+      )}
+      
+      {selectedReport && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedReport(null);
+          }}
+        >
+          <Card className="w-full max-w-2xl border-border/50 bg-gradient-to-br from-card/95 to-card/85 backdrop-blur-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader className="pb-4 border-b border-border/30 sticky top-0 bg-gradient-to-br from-card/95 to-card/85">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-primary/10 p-3 flex-shrink-0">
+                    <FileText className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="font-display text-2xl">{selectedReport.title}</CardTitle>
+                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(selectedReport.week_start).toLocaleDateString("tr-TR", { 
+                        day: "numeric", 
+                        month: "long", 
+                        year: "numeric",
+                        weekday: "long"
+                      })}
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {selectedReport.content ? (
-                      <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
-                        {selectedReport.content}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-sm italic">Yazılı içerik bulunmuyor. Dosyayı indirmek için yukarıdaki butonu kullanın.</p>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="border-border/50 bg-card/70 backdrop-blur-sm">
-                  <CardContent className="py-16 text-center">
-                    <FileText className="h-10 w-10 text-muted-foreground/30 mx-auto" />
-                    <p className="text-sm text-muted-foreground mt-3">Detayları görmek için bir rapor seçin</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {canReport && (
+                    <>
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-all rounded-lg"
+                          onClick={() => {
+                            openEditDialog(selectedReport);
+                            setSelectedReport(null);
+                          }}
+                          title="Düzenle"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive transition-all rounded-lg"
+                          onClick={() => {
+                            handleDelete(selectedReport);
+                            setSelectedReport(null);
+                          }}
+                          title="Sil"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    </>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-9 w-9 hover:bg-muted/50"
+                    onClick={() => setSelectedReport(null)}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-6 space-y-6">
+              {selectedReport.content && (
+                <div>
+                  <h4 className="font-semibold text-foreground text-sm mb-3 flex items-center gap-2">
+                    <div className="h-1 w-5 bg-gradient-to-r from-primary to-accent rounded-full" />
+                    Rapor İçeriği
+                  </h4>
+                  <div className="prose prose-sm max-w-none text-foreground/90 whitespace-pre-wrap bg-primary/5 p-4 rounded-lg border border-primary/10 leading-relaxed">
+                    {selectedReport.content}
+                  </div>
+                </div>
               )}
-            </div>
-          </div>
-        )}
-      </div>
+
+              {selectedReport.file_url && (
+                <div className="pt-4 border-t border-border/30">
+                  <h4 className="font-semibold text-foreground text-sm mb-3 flex items-center gap-2">
+                    <div className="h-1 w-5 bg-gradient-to-r from-accent to-primary rounded-full" />
+                    Dosya
+                  </h4>
+                  <motion.div whileHover={{ x: 5 }}>
+                    <Button 
+                      variant="outline" 
+                      className="gap-3 w-full group hover:border-primary/50 hover:bg-primary/5 transition-all rounded-lg"
+                      asChild
+                    >
+                      <a href={selectedReport.file_url} target="_blank" rel="noopener noreferrer" download>
+                        <Download className="h-4 w-4 group-hover:translate-y-0.5 transition-transform" />
+                        <span>{selectedReport.file_type?.toUpperCase()} Dosyasını İndir</span>
+                      </a>
+                    </Button>
+                  </motion.div>
+                </div>
+              )}
+
+              {!selectedReport.content && !selectedReport.file_url && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground/60 italic">Bu raporda henüz içerik bulunmuyor</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg border-border/50 bg-gradient-to-br from-card/95 to-card/85 backdrop-blur-md shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl">
-              {editingReport ? "Raporu Düzenle" : "Yeni Rapor Oluştur"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label>Başlık</Label>
-              <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Haftalık rapor başlığı..." />
-            </div>
-            <div className="space-y-2">
-              <Label>Rapor Tarihi</Label>
-              <Input type="date" value={formData.report_date} onChange={(e) => setFormData({ ...formData, report_date: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>İçerik (opsiyonel)</Label>
-              <Textarea rows={6} value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} placeholder="Rapor içeriğini yazın..." />
-            </div>
-            <div className="space-y-2">
-              <Label>Dosya Yükle (PDF/Word)</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="text-sm"
-                />
-                {editingReport?.file_url && !file && (
-                  <span className="text-xs text-muted-foreground shrink-0">Mevcut: {editingReport.file_type?.toUpperCase()}</span>
+            <DialogTitle className="font-display text-2xl flex items-center gap-3">
+              <div className="rounded-lg bg-primary/15 p-2">
+                {editingReport ? (
+                  <Pencil className="h-5 w-5 text-primary" />
+                ) : (
+                  <Plus className="h-5 w-5 text-primary" />
                 )}
               </div>
+              {editingReport ? "Raporu Düzenle" : "Yeni Rapor"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label className="font-semibold text-foreground">Başlık *</Label>
+              <Input 
+                value={formData.title} 
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+                placeholder="Rapor başlığını girin..." 
+                className="h-11 bg-card/60 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-lg transition-all placeholder:text-muted-foreground/50"
+              />
             </div>
-            <Button onClick={handleSave} className="w-full shadow-sm" disabled={saving}>
-              {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Kaydediliyor...</> : editingReport ? "Güncelle" : "Oluştur"}
-            </Button>
+            <div className="space-y-2">
+              <Label className="font-semibold text-foreground">Tarih *</Label>
+              <Input 
+                type="date" 
+                value={formData.report_date} 
+                onChange={(e) => setFormData({ ...formData, report_date: e.target.value })} 
+                className="h-11 bg-card/60 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-lg transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-semibold text-foreground">İçerik</Label>
+              <Textarea 
+                rows={4}
+                value={formData.content} 
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })} 
+                placeholder="Rapor içeriğini yazın..." 
+                className="bg-card/60 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-lg transition-all placeholder:text-muted-foreground/50 resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-semibold text-foreground">Dosya (PDF, Word)</Label>
+              <Input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="h-11 bg-card/60 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-lg transition-all text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/15 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+              />
+              {file && <p className="text-xs text-accent font-medium">✓ {file.name}</p>}
+              {editingReport?.file_url && !file && (
+                <p className="text-xs text-muted-foreground/70">Mevcut: {editingReport.file_type?.toUpperCase()}</p>
+              )}
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button 
+                onClick={() => setDialogOpen(false)}
+                variant="outline" 
+                className="flex-1 h-11 rounded-lg border-border/50 hover:bg-card/50 transition-all"
+              >
+                İptal
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                className="flex-1 h-11 rounded-lg gap-2 shadow-lg hover:shadow-xl transition-all bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold"
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> 
+                    Kaydediliyor...
+                  </>
+                ) : editingReport ? (
+                  <>
+                    <Pencil className="h-4 w-4" />
+                    Güncelle
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Oluştur
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
